@@ -298,9 +298,6 @@
           "contentVersion": "1.0.0.1"
         },
         "parameters": {
-          "virtualNetworkResourceGroupName": {
-            "value": "[resourceGroup().name]"
-          },
           "virtualNetworkName": {
             "value": "[parameters('vNETName')]"
           },

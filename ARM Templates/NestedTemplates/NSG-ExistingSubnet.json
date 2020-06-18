@@ -64,7 +64,7 @@
       "properties": {
         "addressPrefix": "[parameters('subnetAddressPrefix')]",
         "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'new-nsg')]"
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
         }
       }
     }
