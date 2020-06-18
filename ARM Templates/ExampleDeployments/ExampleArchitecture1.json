@@ -22,8 +22,8 @@
         "apim-SN--192.168.1.224/28",
         "aks-SN--192.168.1.0/25",
         "privateep-SN--192.168.1.176/28",
-        "shared-SN--192.168.1.160",
-        "bastionRange--192.168.1.144"
+        "shared-SN--192.168.1.160/28",
+        "bastionRange--192.168.1.144/28"
       ]
     },
     "appInsightsName": {
@@ -223,7 +223,7 @@
     "deployServiceBusURL": "[concat(variables('gitUri'),'/ServiceBus.json')]",
     "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCache.json')]",
     "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/PrivateAKSMICluster.json')]",
-    "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json',variables('gitToken'))]"
+    "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]"
   },
   "resources": [
     {
@@ -257,7 +257,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
-        
+        "deployVNET"
       ],
       "properties": {
         "mode": "Incremental",
@@ -292,7 +292,7 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
-        
+        "deployVNET"
       ],
       "properties": {
         "mode": "Incremental",
