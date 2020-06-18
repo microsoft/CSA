@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vaultName": {
+            "type": "String"
+        },
+        "workspaceId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        
+    },
+    "resources": [
+        {
+            "type": "Microsoft.KeyVault/vaults",
+            "apiVersion": "2016-10-01",
+            "name": "[parameters('vaultName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+            },
+            "properties": {
+                "sku": {
+                    "family": "A",
+                    "name": "standard"
+                },
+                "tenantId": "[subscription().tenantId]",
+                "accessPolicies": [],
+                "enabledForDeployment": true,
+                "enabledForDiskEncryption": true,
+                "enabledForTemplateDeployment": true,
+                "enableSoftDelete": true
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [
+                        "[parameters('vaultName')]"
+                    ],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": [
+                            {
+                                "category": "AuditEvent",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true,
+                                "retentionPolicy": {
+                                    "days": 0,
+                                    "enabled": false
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "vaultId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.KeyVault/vaults', parameters('vaultName'))]"
+        }
+    }
+}

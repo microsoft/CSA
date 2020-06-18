@@ -1,0 +1,378 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "administratorLogin": {
+            "type": "String",
+            "defaultValue": "bwatts"
+        },
+        "administratorLoginPassword": {
+            "type": "SecureString"
+        },
+        "collation": {
+            "type": "String",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "databaseName": {
+            "type": "String",
+            "defaultValue":"pocdb"
+        },
+        "tier": {
+            "type": "String",
+            "defaultValue": "GeneralPurpose"
+        },
+        "skuName": {
+            "type": "String",
+            "defaultValue": "GP_Gen5_2"
+        },
+        "maxSizeBytes": {
+            "type": "Int",
+            "defaultValue": 1073741824
+        },
+        "serverName": {
+            "type": "String"
+        },
+        "zoneRedundant": {
+            "defaultValue": false,
+            "type": "Bool"
+        },
+        "licenseType": {
+            "defaultValue": "BasePrice",
+            "type": "String"
+        },
+        "readScaleOut": {
+            "defaultValue": "Disabled",
+            "type": "String"
+        },
+        "numberOfReplicas": {
+            "defaultValue": 0,
+            "type": "Int"
+        },
+        "minCapacity": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "autoPauseDelay": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "allowAzureIps": {
+            "defaultValue": true,
+            "type": "Bool"
+        },
+        "databaseTags": {
+            "defaultValue": {},
+            "type": "Object"
+        },
+        "serverTags": {
+            "defaultValue": {},
+            "type": "Object"
+        },
+        "enableVA": {
+            "defaultValue": false,
+            "type": "Bool"
+        },
+        "useVAManagedIdentity": {
+            "defaultValue": false,
+            "type": "Bool",
+            "metadata": {
+                "description": "To enable vulnerability assessments, the user deploying this template must have an administrator or owner permissions."
+            }
+        },
+        "enablePrivateEndpointSQL": {
+            "defaultValue": true,
+            "type": "Bool"
+        },
+        "peSubnetId": {
+            "type": "string"
+        },
+        "vnetID": {
+            "type": "string"
+        },
+        "enablePrivateEndpoint": {
+            "type": "bool"
+        },
+        "vnetName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "subscriptionId": "[subscription().Id]",
+        "resourceGroupName": "[resourceGroup().name]",
+        "uniqueStorage": "[uniqueString(variables('subscriptionId'), variables('resourceGroupName'), parameters('location'))]",
+        "storageName": "[tolower(concat('sqlva', variables('uniqueStorage')))]",
+        "privateEndpointSQLName": "pocinsightssqlep",
+        "uniqueRoleGuid": "[guid(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), variables('storageBlobContributor'), resourceId('Microsoft.Sql/servers', parameters('serverName')))]",
+        "StorageBlobContributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+        "privateEndpointNestedTemplateId": "pe-bb93e816-8e81-41a6-a991-37eec74b000d",
+        "privateEndpointApi": "2019-04-01",
+        "privateEndpointId": "[if(parameters('enablePrivateEndpoint'), concat(resourceGroup().id, '/Microsoft.Network/privateEndpoints/', parameters('serverName')),'')]",
+        "privateEndpointVnetId": "[if(parameters('enablePrivateEndpoint'), concat(resourceGroup().id, '/Microsoft.Network/virtualNetworks/', parameters('vnetName')), '')]",
+        "privateEndpointContainerTemplateName": "[concat('PrivateEndpointContainer-', if(parameters('enablePrivateEndpoint'), variables('privateEndpointNestedTemplateId'), ''))]",
+        "subnetPoliciesTemplateName": "[concat('SubnetPolicies-', if(parameters('enablePrivateEndpoint'), variables('privateEndpointNestedTemplateId'), ''))]",
+        "deploymentTemplateApi": "2018-05-01",
+        "privateEndpointTemplateName": "[concat('PrivateEndpoint-', if(parameters('enablePrivateEndpoint'), variables('privateEndpointNestedTemplateId'), ''))]",
+        "privateLinkServiceServiceId": "[concat(resourceGroup().id,'/providers/Microsoft.Sql/servers/', parameters('serverName'))]",
+        "privateEndpointTemplateLink": "https://sqlazureextension.hosting.portal.azure.net/sqlazureextension/Content/2.1.0123035/DeploymentTemplates/PrivateEndpoint.json",
+        "privateDnsForPrivateEndpointTemplateLink": "https://sqlazureextension.hosting.portal.azure.net/sqlazureextension/Content/2.1.0123035/DeploymentTemplates/PrivateDnsForPrivateEndpoint.json",
+        "privateDnsForPrivateEndpointNicTemplateLink": "https://sqlazureextension.hosting.portal.azure.net/sqlazureextension/Content/2.1.0123035/DeploymentTemplates/PrivateDnsForPrivateEndpointNic.json",
+        "privateDnsForPrivateEndpointIpConfigTemplateLink": "https://sqlazureextension.hosting.portal.azure.net/sqlazureextension/Content/2.1.0123035/DeploymentTemplates/PrivateDnsForPrivateEndpointIpConfig.json"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-04-01",
+            "name": "[variables('storageName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "resources": [
+                {
+                    "type": "Microsoft.Storage/storageAccounts/providers/roleAssignments",
+                    "apiVersion": "2018-09-01-preview",
+                    "name": "[concat(variables('storageName'), '/Microsoft.Authorization/', variables('uniqueRoleGuid') )]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]",
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+                    ],
+                    "properties": {
+                        "roleDefinitionId": "[variables('StorageBlobContributor')]",
+                        "principalId": "[reference(resourceId('Microsoft.Sql/servers', parameters('serverName')), '2018-06-01-preview', 'Full').identity.principalId]",
+                        "scope": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+                        "principalType": "ServicePrincipal"
+                    },
+                    "condition": "[parameters('useVAManagedIdentity')]"
+                }
+            ],
+            "condition": "[parameters('enableVA')]"
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2015-05-01-preview",
+            "name": "[parameters('serverName')]",
+            "location": "[parameters('location')]",
+            "tags": "[parameters('serverTags')]",
+            "identity": "[if(and(parameters('enableVA'),parameters('useVAManagedIdentity')), json('{\"type\":\"SystemAssigned\"}'), json('null'))]",
+            "properties": {
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "type": "databases",
+                    "apiVersion": "2017-10-01-preview",
+                    "name": "[parameters('databaseName')]",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
+                    ],
+                    "tags": "[parameters('databaseTags')]",
+                    "sku": {
+                        "name": "[parameters('skuName')]",
+                        "tier": "[parameters('tier')]"
+                    },
+                    "properties": {
+                        "collation": "[parameters('collation')]",
+                        "maxSizeBytes": "[parameters('maxSizeBytes')]",
+                        "zoneRedundant": "[parameters('zoneRedundant')]",
+                        "licenseType": "[parameters('licenseType')]",
+                        "readScale": "[parameters('readScaleOut')]",
+                        "readReplicaCount": "[parameters('numberOfReplicas')]",
+                        "minCapacity": "[parameters('minCapacity')]",
+                        "autoPauseDelay": "[parameters('autoPauseDelay')]"
+                    }
+                },
+                {
+                    "type": "firewallrules",
+                    "apiVersion": "2014-04-01-preview",
+                    "name": "AllowAllWindowsAzureIps",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
+                    ],
+                    "properties": {
+                        "endIpAddress": "0.0.0.0",
+                        "startIpAddress": "0.0.0.0"
+                    },
+                    "condition": "[parameters('allowAzureIps')]"
+                },
+                {
+                    "type": "vulnerabilityAssessments",
+                    "apiVersion": "2018-06-01-preview",
+                    "name": "Default",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', parameters('serverName'))]",
+                        "[concat('Microsoft.Storage/storageAccounts/', variables('storageName'))]"
+                    ],
+                    "properties": {
+                        "storageContainerPath": "[if(parameters('enableVA'), concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))).primaryEndpoints.blob, 'vulnerability-assessment'), '')]",
+                        "storageAccountAccessKey": "[if(and(parameters('enableVA'),not(parameters('useVAManagedIdentity'))), listKeys(variables('storageName'), '2018-02-01').keys[0].value, '')]",
+                        "recurringScans": {
+                            "isEnabled": true,
+                            "emailSubscriptionAdmins": true,
+                            "emails": []
+                        }
+                    },
+                    "condition": "[parameters('enableVA')]"
+                }
+            ]
+        },
+        {
+            "condition": "[parameters('enablePrivateEndpoint')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deploymentTemplateApi')]",
+            "name": "[variables('subnetPoliciesTemplateName')]",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2017-05-10/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "apiVersion": "[variables('privateEndpointApi')]",
+                            "name": "[concat(parameters('vnetName'), '/PrivateEP-SN')]",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "privateEndpointNetworkPolicies": "Disabled",
+                                "provisioningState": "Succeeded",
+                                "addressPrefix": "10.0.2.0/24"
+                            },
+                            "type": "Microsoft.Network/virtualNetworks/subnets"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "condition": "[parameters('enablePrivateEndpoint')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deploymentTemplateApi')]",
+            "name": "[variables('privateEndpointTemplateName')]",
+            "dependsOn": [
+                "[resourceId(variables('subscriptionId'), variables('resourceGroupName'), 'Microsoft.Sql/servers/databases/', parameters('serverName'), parameters('databaseName'))]",
+                "[variables('subnetPoliciesTemplateName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "parameters": {
+                    "privateEndpointName": {
+                        "value": "[variables('privateEndpointSQLName')]"
+                    },
+                    "privateEndpointConnectionId": {
+                        "value": ""
+                    },
+                    "privateEndpointConnectionName": {
+                        "value": "[variables('privateEndpointSQLName')]"
+                    },
+                    "privateEndpointId": {
+                        "value": "[variables('privateEndpointId')]"
+                    },
+                    "privateEndpointApiVersion": {
+                        "value": "[variables('privateEndpointApi')]"
+                    },
+                    "privateLinkServiceId": {
+                        "value": "[variables('privateLinkServiceServiceId')]"
+                    },
+                    "groupId": {
+                        "value": "SqlServer"
+                    },
+                    "subnetId": {
+                        "value": "[parameters('peSubnetId')]"
+                    },
+                    "location": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "tags": {
+                        "value": {}
+                    }
+                },
+                "templatelink": {
+                    "contentVersion": "1.0.0.0",
+                    "uri": "[variables('privateEndpointTemplateLink')]"
+                }
+            }
+        },
+        {
+            "condition": "[parameters('enablePrivateEndpoint')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "[variables('deploymentTemplateApi')]",
+            "name": "[concat('PrivateDns-', variables('privateEndpointNestedTemplateId'))]",
+            "dependsOn": [
+                "[variables('privateEndpointTemplateName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2017-05-10/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/privateDnsZones",
+                            "apiVersion": "2018-09-01",
+                            "name": "privatelink.database.windows.net",
+                            "location": "global",
+                            "tags": {},
+                            "properties": {}
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "2018-09-01",
+                            "name": "[concat('privatelink.database.windows.net/', uniqueString(variables('privateEndpointVnetId')))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "privatelink.database.windows.net"
+                            ],
+                            "properties": {
+                                "virtualNetwork": {
+                                    "id": "[variables('privateEndpointVnetId')]"
+                                },
+                                "registrationEnabled": false
+                            }
+                        },
+                        {
+                            "apiVersion": "[variables('deploymentTemplateApi')]",
+                            "name": "[concat('EndpointDnsRecords-', uniqueString(variables('privateEndpointVnetId')))]",
+                            "type": "Microsoft.Resources/deployments",
+                            "dependsOn": [
+                                "privatelink.database.windows.net"
+                            ],
+                            "properties": {
+                                "mode": "Incremental",
+                                "templatelink": {
+                                    "contentVersion": "1.0.0.0",
+                                    "uri": "[variables('privateDnsForPrivateEndpointTemplateLink')]"
+                                },
+                                "parameters": {
+                                    "privateDnsName": {
+                                        "value": "privatelink.database.windows.net"
+                                    },
+                                    "privateEndpointNicResourceId": {
+                                        "value": "[if(parameters('enablePrivateEndpoint'), reference(concat('Microsoft.Resources/deployments/', variables('privateEndpointTemplateName'))).outputs.networkInterfaceId.value, '')]"
+                                    },
+                                    "nicRecordsTemplateUri": {
+                                        "value": "[variables('privateDnsForPrivateEndpointNicTemplateLink')]"
+                                    },
+                                    "ipConfigRecordsTemplateUri": {
+                                        "value": "[variables('privateDnsForPrivateEndpointIpConfigTemplateLink')]"
+                                    },
+                                    "uniqueId": {
+                                        "value": "[uniqueString(variables('privateEndpointVnetId'))]"
+                                    },
+                                    "existingRecords": {
+                                        "value": {}
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

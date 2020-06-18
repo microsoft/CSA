@@ -1,0 +1,149 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "apimname": {
+            "type": "String"
+        },
+        "sku": {
+            "type": "string"
+        },
+        "capacity": {
+            "type": "int"
+        },
+        "apimEmail": {
+            "type": "string"
+        },
+        "appinsightsID": {
+            "type": "String"
+        },
+        "subnetID": {
+            "type": "string"
+        },
+        "loggerName": {
+            "type": "string"
+        },
+        "workspaceId": {
+            "type": "string"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2019-01-01",
+            "name": "[parameters('apimname')]",
+            "location": "[resourceGroup().location]",
+            "type": "Microsoft.ApiManagement/service",
+            "sku": {
+                "name": "[parameters('sku')]",
+                "capacity": "[parameters('capacity')]"
+            },
+            "properties": {
+                "publisherEmail": "[parameters('apimEmail')]",
+                "publisherName": "Demo Brands",
+                "notificationSenderEmail": "apimgmt-noreply@mail.windowsazure.com",
+                "hostnameConfigurations": [
+                    {
+                        "type": "Proxy",
+                        "hostName": "[concat(parameters('apimname'), '.azure-api.net')]",
+                        "negotiateClientCertificate": false,
+                        "defaultSslBinding": true
+                    }
+                ],
+                "virtualNetworkConfiguration": {
+                    "subnetResourceId": "[parameters('subnetID')]"
+                },
+                "customProperties": {
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False",
+                    "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "False"
+                },
+                "virtualNetworkType": "Internal",
+                "disableGateway": false,
+                "apiVersionConstraint": {}
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-01-01",
+                    "type": "loggers",
+                    "name": "[parameters('loggerName')]",
+                    "dependsOn": [
+                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'))]"
+                    ],
+                    "properties": {
+                        "loggerType": "applicationInsights",
+                        "resourceId": "[parameters('appInsightsId')]",
+                        "credentials": {
+                            "instrumentationKey": "[reference(parameters('appInsightsId'), '2015-05-01').InstrumentationKey]"
+                        }
+                    }
+                },
+                {
+                    "apiVersion": "2019-01-01",
+                    "type": "diagnostics",
+                    "name": "applicationinsights",
+                    "dependsOn": [
+                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'))]",
+                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'), '/loggers/', parameters('loggerName'))]"
+                    ],
+                    "properties": {
+                        "loggerId": "[concat('/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/', parameters('apimname'), '/loggers/', parameters('loggerName'))]",
+                        "alwaysLog": "allErrors",
+                        "sampling": {
+                            "percentage": 100,
+                            "samplingType": "fixed"
+                        }
+                    }
+                },
+                {
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [
+                        "[parameters('apimName')]"
+                    ],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": [
+                            {
+                                "category": "GatewayLogs",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "Gateway Requests",
+                                "enabled": true
+                            },
+                            {
+                                "category": "Capacity",
+                                "enabled": true
+                            },
+                            {
+                                "category": "EventHub Events",
+                                "enabled": true
+                            },
+                            {
+                                "category": "Network Status",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        
+    ],
+    "outputs": {
+        "APIMIP": {
+            "type": "array",
+            "value": "[reference(resourceId('Microsoft.ApiManagement/service',parameters('apimname'))).privateIPAddresses]"
+        }
+    }
+}

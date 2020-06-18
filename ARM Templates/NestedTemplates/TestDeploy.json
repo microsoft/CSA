@@ -1,0 +1,86 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "vNETName": {
+        "type": "String",
+        "defaultValue": "wbpocInspireVnet",
+        "metadata": {
+          "description": "Name of the virtual network to be created"
+        }
+      },
+      "addressRange": {
+        "type": "String",
+        "defaultValue":"10.0.0.0/8",
+        "metadata": {
+          "description": "Administrator password for the local admin account"
+        }
+      },
+      "apimRange": {
+        "type": "String",
+        "defaultValue": "10.0.1.0/24"
+      },"aksRange": {
+        "type": "String",
+        "defaultValue": "10.1.0.0/16"
+      },
+      "privateEPRange": {
+        "type": "String",
+        "defaultValue":"10.0.2.0/24"
+      },
+      "sharedRange": {
+        "type": "String",
+        "defaultValue": "10.0.3.0/24"
+      },
+      "bastionRange": {
+        "type": "String",
+        "defaultValue": "10.0.4.0/24"
+      }
+    },
+    "variables": {
+      "gitUri": "https://raw.githubusercontent.com/bwatts64/templates/master",
+      "deployVNETTemplateURL": "[concat(variables('gitUri'),'/VNet.json')]",
+      "deploySQLTemplateURL": "[concat(variables('gitUri'),'/SQLDB.json')]",
+      "deployAppInsightsTemplateURL": "[concat(variables('gitUri'),'/ApplicationInsights.json')]",
+      "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json')]"
+    },
+    "resources": [
+      {
+        "name": "deployVNET",
+        "type": "Microsoft.Resources/deployments",
+        "apiVersion": "2015-01-01",
+        "dependsOn": [],
+        "properties": {
+          "mode": "Incremental",
+          "templateLink": {
+            "uri": "[variables('deployVNETTemplateURL')]",
+            "contentVersion": "1.0.0.0"
+          },
+          "parameters": {
+            "vNETName": {
+              "value": "[parameters('vNETName')]"
+            },
+            "addressRange": {
+              "value": "[parameters('addressRange')]"
+            },
+            "apimRange": {
+              "value": "[parameters('apimRange')]"
+            },
+            "aksRange": {
+              "value": "[parameters('aksRange')]"
+            },
+            "sharedRange": {
+              "value": "[parameters('sharedRange')]"
+            },
+            "bastionRange": {
+              "value": "[parameters('bastionRange')]"
+            },
+            "privateEPRange": {
+              "value": "[parameters('privateEPRange')]"
+            }
+          }
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }

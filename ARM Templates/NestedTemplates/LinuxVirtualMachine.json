@@ -1,0 +1,128 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "subnetName": {
+      "type": "string"
+    },
+    "virtualNetworkId": {
+      "type": "string"
+    },
+    "virtualMachineName": {
+      "type": "string"
+    },
+    "virtualMachineSize": {
+      "type": "string"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "secureString"
+    },
+    "zone": {
+      "type": "string"
+    },
+    "sku": {
+      "type": "string",
+      "allowedValues": [
+        "18.04-LTS"
+      ]
+    }
+  },
+  "variables": {
+    "vnetId": "[parameters('virtualNetworkId')]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
+    "publisher": "Windows",
+    "offer": "WindowsServer",
+    "dataDiskName": "[concat(parameters('virtualMachineName'),'-DataDisk0')]",
+    "nicName": "[concat(parameters('virtualMachineName'),'-NIC')]"
+  },
+  "resources": [
+    {
+      "name": "[variables('nicName')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "apiVersion": "2019-07-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              },
+              "privateIPAllocationMethod": "Dynamic"
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": false
+      }
+    },
+    {
+      "name": "[parameters('virtualMachineName')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "apiVersion": "2019-07-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('nicName')]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('virtualMachineSize')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "Canonical",
+            "offer": "UbuntuServer",
+            "sku": "[parameters('sku')]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "osType": "Linux",
+            "createOption": "fromImage",
+            "managedDisk": {
+              "storageAccountType": "StandardSSD_LRS"
+            }
+          },
+          "dataDisks": [
+            {
+              "lun": 0,
+              "createOption": "Empty",
+              "caching": "None",
+              "writeAcceleratorEnabled": false,
+              "diskSizeGB": 32,
+              "managedDisk": {
+                "storageAccountType": "StandardSSD_LRS"
+              }
+
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+            }
+          ]
+        },
+        "osProfile": {
+          "computerName": "[parameters('virtualMachineName')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false,
+            "provisionVMAgent": true
+          }
+        }
+      },
+      "zones": [
+        "[parameters('zone')]"
+      ]
+    }
+  ],
+  "outputs": {
+
+  }
+}

@@ -1,0 +1,73 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+      "virtualNetworkName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the existing VNet"
+        }
+      },
+      "subnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the existing subnet."
+        }
+      },
+      "subnetAddressPrefix": {
+        "type": "string"
+      },
+      "nsgName": {
+          "type": "string"
+      },
+      "securityRules": {
+          "type": "array"
+      }
+    },
+    "variables": {
+        "copy": [
+            {
+                "name": "securityRules",
+                "count": "[length(parameters('securityRules'))]",
+                "input": {
+                    "name": "[split(parameters('securityRules')[copyIndex()],'--')[0]]",
+                    "properties": {
+                        "description": "[split(parameters('securityRules')[copyIndex()],'--')[1]]",
+                        "protocol": "[split(parameters('securityRules')[copyIndex()],'--')[2]]",
+                        "sourcePortRange": "[split(parameters('securityRules')[copyIndex()],'--')[3]]",
+                        "destinationPortRange": "[split(parameters('securityRules')[copyIndex()],'--')[4]]",
+                        "sourceAddressPrefix": "[split(parameters('securityRules')[copyIndex()],'--')[5]]",
+                        "destinationAddressPrefix": "[split(parameters('securityRules')[copyIndex()],'--')[6]]",
+                        "access": "[split(parameters('securityRules')[copyIndex()],'--')[7]]",
+                        "priority": "[split(parameters('securityRules')[copyIndex()],'--')[8]]",
+                        "direction": "[split(parameters('securityRules')[copyIndex()],'--')[9]]"
+                    }
+                }
+            }
+        ]
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[parameters('nsgName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2019-12-01",
+        "properties": {
+          "securityRules": "[variables('securityRules')]"
+        }
+      },
+      {
+          "apiVersion": "2019-12-01",
+      "type": "Microsoft.Network/virtualNetworks/subnets",
+      "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName'))]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "addressPrefix": "[parameters('subnetAddressPrefix')]",
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', 'new-nsg')]"
+        }
+      }
+    }
+    ],
+    "outputs": {}
+  }

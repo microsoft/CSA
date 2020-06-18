@@ -1,0 +1,72 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "acrName": {
+            "type": "String"
+        },
+        "workspaceId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2019-12-01-preview",
+            "name": "[parameters('acrName')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                
+            ],
+            "sku": {
+                "name": "Premium"
+            },
+            "properties": {
+                "publicNetworkAccess": "Disabled"
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [
+                        "[parameters('acrName')]"
+                    ],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": [
+                            {
+                                "category": "ContainerRegistryRepositoryEvents",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ContainerRegistryLoginEvents",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true,
+                                "retentionPolicy": {
+                                    "days": 0,
+                                    "enabled": false
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "acrId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.ContainerRegistry/registries', parameters('acrName'))]"
+        }
+    }
+}

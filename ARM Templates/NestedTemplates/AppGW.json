@@ -1,0 +1,372 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "applicationGatewayName": {
+            "type": "string"
+        },
+        "tier": {
+            "type": "string"
+        },
+        "skuSize": {
+            "type": "string"
+        },
+        "capacity": {
+            "type": "int",
+            "defaultValue": 2
+        },
+        "subnetName": {
+            "type": "string"
+        },
+        "zones": {
+            "type": "array"
+        },
+        "publicIpAddressName": {
+            "type": "string"
+        },
+        "sku": {
+            "type": "string"
+        },
+        "allocationMethod": {
+            "type": "string"
+        },
+        "publicIpZones": {
+            "type": "array"
+        },
+        "privateIpAddress": {
+            "type": "string"
+        },
+        "autoScaleMaxCapacity": {
+            "type": "int"
+        },
+        "subnetID": {
+            "type": "string"
+        },
+        "devPool": {
+            "type": "string"
+        },
+        "apiPool": {
+            "type": "string"
+        },
+        "workspaceId": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "publicIPRef": "[resourceId('Microsoft.Network/publicIPAddresses/', parameters('publicIpAddressName'))]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('applicationGatewayName')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2019-09-01",
+            "location": "[parameters('location')]",
+            "zones": "[parameters('zones')]",
+            "dependsOn": [
+                "[parameters('publicIpAddressName')]"
+            ],
+            "tags": {},
+            "properties": {
+                "sku": {
+                    "name": "[parameters('skuSize')]",
+                    "tier": "[parameters('tier')]"
+                },
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('subnetID')]"
+                            }
+                        }
+                    }
+                ],
+                "sslCertificates": [
+                    {
+                        "name": "AppGW",
+                        "properties": {
+                            "data": "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",
+                            "password": "ABCabc1234"
+                        }
+                    }
+                ],
+                "frontendIPConfigurations": [
+                    {
+                        "name": "appGwPublicFrontendIp",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[variables('publicIPRef')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "appGwPrivateFrontendIp",
+                        "properties": {
+                            "privateIPAddress": "[parameters('privateIpAddress')]",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[parameters('subnetID')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "port_443",
+                        "properties": {
+                            "port": 443
+                        }
+                    },
+                    {
+                        "name": "port_8080",
+                        "properties": {
+                            "port": 8080
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "APIMAPI",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "fqdn": "[parameters('apiPool')]"
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "name": "APIMDEV",
+                        "properties": {
+                            "backendAddresses": [
+                                {
+                                    "fqdn": "[parameters('devPool')]"
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "443API",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "pickHostNameFromBackendAddress": true,
+                            "path": "/",
+                            "requestTimeout": 20,
+                            "probe": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/probes/APIMGW')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "443DEV",
+                        "properties": {
+                            "port": 443,
+                            "protocol": "Https",
+                            "cookieBasedAffinity": "Disabled",
+                            "pickHostNameFromBackendAddress": true,
+                            "path": "/",
+                            "requestTimeout": 20
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "443public",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/appGwPublicFrontendIp')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/port_443')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/AppGW')]"
+                            },
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    },
+                    {
+                        "name": "443private",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendIPConfigurations/appGwPrivateFrontendIp')]"
+                            },
+                            "frontendPort": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/frontendPorts/port_8080')]"
+                            },
+                            "protocol": "Https",
+                            "sslCertificate": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/sslCertificates/AppGW')]"
+                            },
+                            "hostNames": [],
+                            "requireServerNameIndication": false
+                        }
+                    }
+                ],
+                "urlPathMaps": [
+                    {
+                        "name": "PathRouting",
+                        "properties": {
+                            "defaultBackendAddressPool": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/APIMAPI')]"
+                            },
+                            "defaultBackendHttpSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/443API')]"
+                            },
+                            "pathRules": [
+                                {
+                                    "name": "Dev",
+                                    "properties": {
+                                        "paths": [
+                                            "/dev"
+                                        ],
+                                        "backendAddressPool": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/APIMDEV')]"
+                                        },
+                                        "backendHttpSettings": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/443DEV')]"
+                                        }
+                                    }
+                                },
+                                {
+                                    "name": "API",
+                                    "properties": {
+                                        "paths": [
+                                            "/api"
+                                        ],
+                                        "backendAddressPool": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendAddressPools/APIMAPI')]"
+                                        },
+                                        "backendHttpSettings": {
+                                            "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/backendHttpSettingsCollection/443API')]"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "name": "PathRoutingPublic",
+                        "properties": {
+                            "ruleType": "PathBasedRouting",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/443public')]"
+                            },
+                            "urlPathMap": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/urlPathMaps/PathRouting')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "PathRoutingPrivate",
+                        "properties": {
+                            "ruleType": "PathBasedRouting",
+                            "httpListener": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/httpListeners/443private')]"
+                            },
+                            "urlPathMap": {
+                                "id": "[concat(resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName')), '/urlPathMaps/PathRouting')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "APIMGW",
+                        "properties": {
+                            "protocol": "Https",
+                            "host": "[parameters('apiPool')]",
+                            "path": "/status-0123456789abcdef",
+                            "interval": 30,
+                            "timeout": 30,
+                            "unhealthyThreshold": 3,
+                            "pickHostNameFromBackendHttpSettings": false,
+                            "minServers": 0,
+                            "match": {}
+                        }
+                    }
+                ],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "Detection",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0",
+                    "disabledRuleGroups": [],
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128,
+                    "fileUploadLimitInMb": 100
+                },
+                "enableHttp2": false,
+                "autoscaleConfiguration": {
+                    "minCapacity": 2,
+                    "maxCapacity": 4
+                }
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [
+                        "[parameters('applicationGatewayName')]"
+                    ],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": [
+                            {
+                                "category": "ApplicationGatewayAccessLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ApplicationGatewayPerformanceLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ApplicationGatewayFirewallLog",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true,
+                                "retentionPolicy": {
+                                    "days": 0,
+                                    "enabled": false
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "apiVersion": "2019-02-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[parameters('publicIpAddressName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "zones": "[parameters('publicIpZones')]",
+            "properties": {
+                "publicIPAllocationMethod": "[parameters('allocationMethod')]"
+            }
+        }
+    ]
+}
