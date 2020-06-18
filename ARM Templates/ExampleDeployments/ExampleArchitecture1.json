@@ -263,12 +263,9 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployNSGTemplateURL')]",
-          "contentVersion": "1.0.0.0"
+          "contentVersion": "1.0.0.1"
         },
         "parameters": {
-          "virtualNetworkResourceGroupName": {
-            "value": "[resourceGroup().name]"
-          },
           "virtualNetworkName": {
             "value": "[parameters('vNETName')]"
           },
@@ -298,7 +295,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployNSGTemplateURL')]",
-          "contentVersion": "1.0.0.0"
+          "contentVersion": "1.0.0.1"
         },
         "parameters": {
           "virtualNetworkResourceGroupName": {
