@@ -57,16 +57,19 @@
         }
       },
       {
-          "apiVersion": "2019-12-01",
-      "type": "Microsoft.Network/virtualNetworks/subnets",
-      "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName'))]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressPrefix": "[parameters('subnetAddressPrefix')]",
-        "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
-        }
-      }
+            "apiVersion": "2019-12-01",
+            "dependsOn": [
+                "[parameters('nsgName')]"
+            ],
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressPrefix": "[parameters('subnetAddressPrefix')]",
+                "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                }
+            }
     }
     ],
     "outputs": {}
