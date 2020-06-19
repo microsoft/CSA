@@ -30,17 +30,17 @@
                 "name": "securityRules",
                 "count": "[length(parameters('securityRules'))]",
                 "input": {
-                    "name": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[0]]",
+                    "name": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[0]]",
                     "properties": {
-                        "description": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[1]]",
-                        "protocol": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[2]]",
-                        "sourcePortRange": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[3]]",
-                        "destinationPortRange": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[4]]",
-                        "sourceAddressPrefix": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[5]]",
-                        "destinationAddressPrefix": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[6]]",
-                        "access": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[7]]",
-                        "priority": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[8]]",
-                        "direction": "[split(parameters('securityRules')[copyIndex('securityRules')],'--')[9]]"
+                        "description": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[1]]",
+                        "protocol": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[2]]",
+                        "sourcePortRange": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[3]]",
+                        "destinationPortRange": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[4]]",
+                        "sourceAddressPrefix": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[5]]",
+                        "destinationAddressPrefix": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[6]]",
+                        "access": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[7]]",
+                        "priority": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[8]]",
+                        "direction": "[split(parameters('securityRules')[copyIndex('securityRules')],'|')[9]]"
                     }
                 }
             }

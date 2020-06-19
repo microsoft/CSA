@@ -19,12 +19,12 @@
     "subnets": {
       "type": "array",
       "defaultValue": [
-        "apim-SN--192.168.1.224/28",
-        "aks-SN--192.168.1.0/25",
-        "privateep-SN--192.168.1.176/28",
-        "shared-SN--192.168.1.160/28",
-        "AzureBastionSubnet--192.168.1.128/28",
-        "AppGW-SN--192.168.1.144/28"
+        "apim-SN|192.168.1.224/28",
+        "aks-SN|192.168.1.0/25",
+        "privateep-SN|192.168.1.176/28",
+        "shared-SN|192.168.1.160/28",
+        "AzureBastionSubnet|192.168.1.128/28",
+        "AppGW-SN|192.168.1.144/28"
       ]
     },
     "appInsightsName": {
@@ -281,10 +281,10 @@
           },
           "securityRules": {
             "value": [
-              "deny-all--Deny-All-Traffic--Tcp--*--*--*--*--Deny--500--Inbound",
-              "allow-443--Allow-SSL--Tcp--*--443--*--*--Allow--100--Inbound",
-              "allow-8080--Allow-SSL--Tcp--*--8080--*--*--Allow--110--Inbound",
-              "allow-HealthProve--Allow-AppGW-Health--Tcp--*--65200-65535--*--Allow--120--Inbound"
+              "deny-all|Deny-All-Traffic|Tcp|*|*|*|*|Deny|500|Inbound",
+              "allow-443|Allow-SSL|Tcp|*|443|*|*|Allow|100|Inbound",
+              "allow-8080|Allow-SSL|Tcp|*|8080|*|*|Allow|110|Inbound",
+              "allow-HealthProve|Allow-AppGWHealth|Tcp|*|65200-65535|*|Allow|120|Inbound"
             ]
           }
         }
@@ -318,8 +318,8 @@
           },
           "securityRules": {
             "value": [
-              "deny-all--Deny-All-Traffic--Tcp--*--*--*--*--Deny--500--Inbound",
-              "allow-bastion--Allow-Bastion-Host--Tcp--*--*--192.168.1.144/28--*--Allow--100--Inbound"
+              "deny-all|Deny-All-Traffic|Tcp|*|*|*|*|Deny|500|Inbound",
+              "allow-bastion|Allow-Bastion-Host|Tcp|*|*|192.168.1.144/28|*|Allow|100|Inbound"
             ]
           }
         }
@@ -353,20 +353,20 @@
           },
           "securityRules": {
             "value": [
-              "allow-443--Allow-SSL--Tcp--*--443--192.168.1.144/28--*--Allow--100--Inbound",
-              "allow-mgmt-endpoint--Allow-Management--Tcp--*--3443--ApiManagement--VirtualNetwork--Allow--120--Inbound",
-              "allow-azure-storage--Allow-Storage-Account--Tcp--*--443--VirtualNetwork--Storage--Allow--130--Outbound",
-              "allow-azure-ad--Allow-Azure-AD--Tcp--*--443--VirtualNetwork--AzureActiveDirectory--Allow--140--Outbound",
-              "allow-event-hub--Allow-EventHub--Tcp--*--5671,5672,443--VirtualNetwork--EventHub--Allow--150--Outbound",
-              "allow-file-share--Allow-FileShare--Tcp--*--445--VirtualNetwork--Storage--Allow--160--Outbound",
-              "allow-health-status--Allow-Health-Status--Tcp--*--1886--VirtualNetwork--AzureCloud--Allow--170--Outbound",
-              "allow-azure-monitor--Allow-Azure-Monitor--Tcp--*--443--VirtualNetwork--AzureMonitor--Allow--180--Outbound",
-              "allow-azure-cache--Allow-Azure-Cahce--Tcp--*--6381-6383--VirtualNetwork--VirtualNetwork--Allow--190--Outbound",
-              "allow-azure-cache--Allow-Azure-Cahce--Tcp--*--6381-6383--VirtualNetwork--VirtualNetwork--Allow--200--Inbound",
-              "allow-rate-limit--Allow-Rate-Limit-Policy--UDP--*--4290--VirtualNetwork--VirtualNetwork--Allow-210-Inbound",
-              "allow-rate-limit--Allow-Rate-Limit-Policy--UDP--*--4290--VirtualNetwork--VirtualNetwork--Allow-220-Outbound",
-              "deny-all-inbound--Deny All--Tcp--*--*--*--*--Deny--500-Inbound",
-              "deny-all-outbound--Deny All--Tcp--*--*--*--*--Deny--500-Outbound"
+              "allow-443|Allow-SSL|Tcp|*|443|192.168.1.144/28|*|Allow|100|Inbound",
+              "allow-mgmt-endpoint|Allow-Management|Tcp|*|3443|ApiManagement|VirtualNetwork|Allow|120|Inbound",
+              "allow-azure-storage|Allow-Storage-Account|Tcp|*|443|VirtualNetwork|Storage|Allow|130|Outbound",
+              "allow-azure-ad|Allow-Azure-AD|Tcp|*|443|VirtualNetwork|AzureActiveDirectory|Allow|140|Outbound",
+              "allow-event-hub|Allow-EventHub|Tcp|*|5671,5672,443|VirtualNetwork|EventHub|Allow|150|Outbound",
+              "allow-file-share|Allow-FileShare|Tcp|*|445|VirtualNetwork|Storage|Allow|160|Outbound",
+              "allow-health-status|Allow-Health-Status|Tcp|*|1886|VirtualNetwork|AzureCloud|Allow|170|Outbound",
+              "allow-azure-monitor|Allow-Azure-Monitor|Tcp|*|443|VirtualNetwork|AzureMonitor|Allow|180|Outbound",
+              "allow-azure-cache|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|190|Outbound",
+              "allow-azure-cache|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|200|Inbound",
+              "allow-rate-limit|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow-210-Inbound",
+              "allow-rate-limit|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow-220-Outbound",
+              "deny-all-inbound|Deny All|Tcp|*|*|*|*|Deny|500-Inbound",
+              "deny-all-outbound|Deny All|Tcp|*|*|*|*|Deny|500-Outbound"
             ]
           }
         }
