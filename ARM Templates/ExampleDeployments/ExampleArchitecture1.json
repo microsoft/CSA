@@ -27,6 +27,10 @@
         "AppGW-SN|192.168.1.144/28"
       ]
     },
+    "test": {
+      "type": "string",
+      "defaultValue": "allow-HealthProbe|Allow-AppGWHealth|Tcp|*|65200-65535|*|Allow|120|Inbound"
+    },
     "appInsightsName": {
       "defaultValue": "wbpocapimai",
       "type": "string"
@@ -224,7 +228,8 @@
     "deployServiceBusURL": "[concat(variables('gitUri'),'/ServiceBus.json')]",
     "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCache.json')]",
     "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/PrivateAKSMICluster.json')]",
-    "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]"
+    "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]",
+    "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]"
   },
   "resources": [
     {
@@ -284,7 +289,7 @@
               "deny-all|Deny-All-Traffic|Tcp|*|*|*|*|Deny|500|Inbound",
               "allow-443|Allow-SSL|Tcp|*|443|*|*|Allow|100|Inbound",
               "allow-8080|Allow-SSL|Tcp|*|8080|*|*|Allow|110|Inbound",
-              "allow-HealthProve|Allow-AppGWHealth|Tcp|*|65200-65535|*|Allow|120|Inbound"
+              "allow-HealthProbe|Allow-AppGWHealth|Tcp|*|65200-65535|*|*|Allow|120|Inbound"
             ]
           }
         }
@@ -357,23 +362,56 @@
               "allow-mgmt-endpoint|Allow-Management|Tcp|*|3443|ApiManagement|VirtualNetwork|Allow|120|Inbound",
               "allow-azure-storage|Allow-Storage-Account|Tcp|*|443|VirtualNetwork|Storage|Allow|130|Outbound",
               "allow-azure-ad|Allow-Azure-AD|Tcp|*|443|VirtualNetwork|AzureActiveDirectory|Allow|140|Outbound",
-              "allow-event-hub|Allow-EventHub|Tcp|*|5671,5672,443|VirtualNetwork|EventHub|Allow|150|Outbound",
+              "allow-event-hub|Allow-EventHub|Tcp|*|5671-5672|VirtualNetwork|EventHub|Allow|150|Outbound",
+              "allow-event-hub-443|Allow-EventHub|Tcp|*|443|VirtualNetwork|EventHub|Allow|155|Outbound",
               "allow-file-share|Allow-FileShare|Tcp|*|445|VirtualNetwork|Storage|Allow|160|Outbound",
               "allow-health-status|Allow-Health-Status|Tcp|*|1886|VirtualNetwork|AzureCloud|Allow|170|Outbound",
               "allow-azure-monitor|Allow-Azure-Monitor|Tcp|*|443|VirtualNetwork|AzureMonitor|Allow|180|Outbound",
-              "allow-azure-cache|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|190|Outbound",
-              "allow-azure-cache|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|200|Inbound",
-              "allow-rate-limit|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow-210-Inbound",
-              "allow-rate-limit|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow-220-Outbound",
-              "deny-all-inbound|Deny All|Tcp|*|*|*|*|Deny|500-Inbound",
-              "deny-all-outbound|Deny All|Tcp|*|*|*|*|Deny|500-Outbound"
+              "allow-azure-cache-ob|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|190|Outbound",
+              "allow-azure-cache-ib|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|200|Inbound",
+              "allow-rate-limit-ib|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow|210|Inbound",
+              "allow-rate-limit-ob|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow|220|Outbound",
+              "deny-all-inbound|Deny All|Tcp|*|*|*|*|Deny|500|Inbound",
+              "deny-all-outbound|Deny All|Tcp|*|*|*|*|Deny|500|Outbound"
             ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAKSNSG",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployNSGEmptyTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "subnetName": {
+            "value": "AKS-SN"
+          },
+          "subnetAddressPrefix": {
+            "value": "[reference(resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('vNETName'), 'AKS-SN'), '2018-03-01').addressPrefix]"
+          },
+          "nsgName": {
+            "value": "AKS-NSG"
           }
         }
       }
     }
   ],
   "outputs": {
-    
+    "SecurityRule": {
+      "type": "array",
+      "value": "[split(parameters('test'),'|')]"
+    }
   }
 }
