@@ -104,10 +104,10 @@
                     "name": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[0])]",
                     "properties": {
                         "frontendIPConfiguration": {
-                            "id": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[1])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[1])]"
                         },
                         "frontendPort": {
-                            "id": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendPorts/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[2])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendPorts/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[2])]"
                         },
                         "protocol": "Http",
                         "hostNames": [],
@@ -123,13 +123,13 @@
                     "properties": {
                         "ruleType": "Basic",
                         "httpListener": {
-                            "id": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/httpListeners/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[1])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/httpListeners/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[1])]"
                         },
                         "backendAddressPool": {
-                            "id": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendAddressPools/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[2])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendAddressPools/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[2])]"
                         },
                         "backendHttpSettings": {
-                            "id": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendHttpSettingsCollection/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[3])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendHttpSettingsCollection/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[3])]"
                         }
                     }
                 }
