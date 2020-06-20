@@ -399,7 +399,7 @@
               "value": "Dynamic"
           },
           "publicIpZones": {
-              "value": [1,2,3]
+              "value": 1
           }
         }
       }
@@ -426,7 +426,7 @@
               "value": "Dynamic"
           },
           "publicIpZones": {
-              "value": [1,2,3]
+              "value": 2
           }
         }
       }
@@ -435,7 +435,11 @@
       "name": "deployAppGW",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
-      "dependsOn": [],
+      "dependsOn": [
+        "deployVNET",
+        "deployPublicIP1",
+        "deployPublicIP2"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
