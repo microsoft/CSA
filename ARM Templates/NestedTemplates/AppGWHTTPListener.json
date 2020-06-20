@@ -91,9 +91,8 @@
                         "protocol": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[2]]",
                         "cookieBasedAffinity": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[3]]",
                         "requestTimeout": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[4]]",
-                        "hostName": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[5]]",
-                        "pickHostNameFromBackendAddress": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[6]]",
-                        "path": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[7]]"
+                        "pickHostNameFromBackendAddress": true,
+                        "path": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[5]]"
                     }
                 }
             },
