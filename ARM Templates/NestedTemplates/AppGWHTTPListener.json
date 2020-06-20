@@ -101,7 +101,7 @@
                 "name": "httpListeners",
                 "count": "[length(parameters('httpListeners'))]",
                 "input": {
-                    "name": "[concat(resourceGroup().id,'/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[0])]",
+                    "name": "[split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[0]]",
                     "properties": {
                         "frontendIPConfiguration": {
                             "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[1])]"
