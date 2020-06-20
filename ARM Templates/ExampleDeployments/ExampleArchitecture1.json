@@ -63,10 +63,6 @@
         "type": "string",
         "defaultValue": "WAF_v2"
     },
-    "appgwcapacity": {
-        "type": "int",
-        "defaultValue": 2
-    },
     "appgwzones": {
         "type": "array",
         "defaultValue": [
@@ -75,25 +71,13 @@
                 "3"
         ]
     },
-    "appgwPIPName": {
-        "type": "string",
-        "defaultValue": "wbpocAPPappgw-pip"
-    },
-    "appgwsku": {
-        "type": "string",
-        "defaultValue": "Standard"
-    },
-    "appgwpublicIpZones": {
-        "type": "array",
-        "defaultValue": []
-    },
-    "appgwprivateIpAddress": {
-        "type": "string",
-        "defaultValue": "192.168.1.150"
-    },
-    "appgwautoScaleMaxCapacity": {
+    "appgwMinCapacity": {
         "type": "int",
-        "defaultValue": 4
+        "defaultValue": 1
+    },
+    "appgwMaxCapacity": {
+        "type": "int",
+        "defaultValue": 3
     },
     "bastionHostName": {
       "type": "string",
@@ -212,24 +196,10 @@
     "gitUri": "https://raw.githubusercontent.com/microsoft/SoutheastCSA/master/ARM%20Templates/NestedTemplates",
     "gitToken": "?token=AHZUR2HL7OC45D4BODNJ5T266UOBW",
     "deployVNETTemplateURL": "[concat(variables('gitUri'),'/VNet.json',variables('gitToken'))]",
-    "deployAppInsightsTemplateURL": "[concat(variables('gitUri'),'/ApplicationInsights.json')]",
-    "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json')]",
-    "deployAPPGWTemplateURL": "[concat(variables('gitUri'),'/AppGW.json')]",
-    "deployAzureBastionTemplateURL": "[concat(variables('gitUri'),'/AzureBastion.json')]",
-    "deployWindowsServerTemplateURL": "[concat(variables('gitUri'),'/WindowsVirtualMachine.json')]",
-    "deployDNSZoneTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSZone.json')]",
-    "deployLogAnalyticsURL": "[concat(variables('gitUri'),'/Log_Analytics_Workspace.json')]",
-    "deployPrivateStorageURL": "[concat(variables('gitUri'),'/PrivateStorageAccount.json')]",
-    "deployPrivateEndpointURL": "[concat(variables('gitUri'),'/PrivateEndpoint.json')]",
-    "getNICIPURL": "[concat(variables('gitUri'),'/GetNicIP.json')]",
-    "deployKeyVaultURL": "[concat(variables('gitUri'),'/KeyVault.json')]",
-    "deployACRURL": "[concat(variables('gitUri'),'/ACR.json')]",
-    "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json')]",
-    "deployServiceBusURL": "[concat(variables('gitUri'),'/ServiceBus.json')]",
-    "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCache.json')]",
-    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/PrivateAKSMICluster.json')]",
     "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]",
-    "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]"
+    "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]",
+    "deployPublicIPTemplateURL": "[concat(variables('gitUri'),'/PublicIPAddress.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]",
+    "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]"
   },
   "resources": [
     {
@@ -406,12 +376,134 @@
           }
         }
       }
+    },
+    {
+      "name": "deployPublicIP1",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('applicationGatewayName'),'pip1')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Dynamic"
+          },
+          "publicIpZones": {
+              "value": [1,2,3]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployPublicIP2",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('applicationGatewayName'),'pip2')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Dynamic"
+          },
+          "publicIpZones": {
+              "value": [1,2,3]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAppGW",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAppGWHTTPListenerTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "applicationGatewayName": {
+              "value": "[parameters('applicationGatewayName')]"
+          },
+          "tier": {
+              "value": "[parameters('appgwtier')]"
+          },
+          "skuSize": {
+              "type": "[parameters('appgwskuSize')]"
+          },
+          "minCapacity": {
+              "type": "[parameters('appgwMinCapacity')]",
+          },
+          "maxCapacity": {
+              "type": "[parameters('appgwMaxCapacity')]",
+          },
+          "zones": {
+              "type": "[parameters('appgwzones')]"
+          },
+          "subnetID": {
+              "type": "string"
+          },
+          "publicIpAddressesIds": {
+              "value": [
+                "[concat('PIP1|',reference('deployPublicIP1').outputs.publicIPID.value )]",
+                "[concat('PIP2|',reference('deployPublicIP2').outputs.publicIPID.value )]"
+              ]
+          },
+          "frontendPorts": {
+              "value": [
+                "HTTP-80|80",
+                "HTTP-8080|8080"
+              ]
+          },
+          "backendAddresses": {
+              "value": [
+                "Example1-BEPool|bing.com",
+                "Example2-BEPool|microsoft.com"
+              ]
+          },
+          "backendHttpSettings": {
+              "value": [
+                "Example-App-HTTPSetting|80|TCP|Disabled|30||true|/",
+                "Example2-App-HTTPSetting|80|TCP|Disabled|30||true|/"
+              ]
+          },
+          "httpListeners": {
+              "value": [
+                "Example1-App-Listener|PIP1|HTTP-80",
+                "Example2-App-Listener|PIP2|HTTP-8080"
+              ]
+          },
+          "requestRoutingRules": {
+              "value": [
+                "Example1-App-RoutingRule|Example1-App-Listener|Example1-BEPool|Example-App-HTTPSetting",
+                "Example2-App-RoutingRule|Example2-App-Listener|Example2-BEPool|Example-App-HTTPSetting"
+              ]
+          }
+        }
+      }
     }
   ],
   "outputs": {
-    "SecurityRule": {
-      "type": "array",
-      "value": "[split(parameters('test'),'|')]"
-    }
   }
 }
