@@ -399,7 +399,7 @@
               "value": "Dynamic"
           },
           "publicIpZones": {
-              "value": 1
+              "value": ["1"]
           }
         }
       }
@@ -426,7 +426,7 @@
               "value": "Dynamic"
           },
           "publicIpZones": {
-              "value": 2
+              "value": ["2"]
           }
         }
       }

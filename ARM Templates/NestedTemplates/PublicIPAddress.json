@@ -12,7 +12,7 @@
             "type": "string"
         },
         "publicIpZones": {
-            "type": "int"
+            "type": "array"
         }
     },
     "variables": {},
