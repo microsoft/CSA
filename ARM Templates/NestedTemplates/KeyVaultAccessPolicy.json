@@ -26,96 +26,14 @@
                 "accessPolicies": [
                     {
                         "tenantId": "[subscription().tenantId]",
-                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]",
+                        "objectId": "[parameters('objectId')]",
                         "permissions": {
-                            "secrets": [
-                                    "Get",
-                                    "List",
-                                    "Set",
-                                    "Delete",
-                                    "Recover",
-                                    "Backup",
-                                    "Restore"
-                                ],
-                                "certificates": [
-                                    "Get",
-                                    "List",
-                                    "Update",
-                                    "Create",
-                                    "Import",
-                                    "Delete",
-                                    "Recover",
-                                    "Backup",
-                                    "Restore",
-                                    "ManageContacts",
-                                    "ManageIssuers",
-                                    "GetIssuers",
-                                    "ListIssuers",
-                                    "SetIssuers",
-                                    "DeleteIssuers"
-                                ]
+                            "secrets": "[parameters('secrets')]",
+                                "certificates": "[parameters('certificates')]"
                         }
                     }   
                 ]
             }
-        },
-        {
-            "name": "[parameters('applicationGatewayName')]",
-            "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2019-09-01",
-            "dependsOn": [
-                "[concat(parameters('keyVaultName'), '/add')]"
-            ],
-            "location": "[resourceGroup().location]",
-            "zones": "[parameters('zones')]",
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                    "[variables('identityID')]": {}
-                }
-            },
-            "tags": {},
-            "properties": {
-                "sku": {
-                    "name": "[parameters('skuSize')]",
-                    "tier": "[parameters('tier')]"
-                },
-                "gatewayIPConfigurations":  [
-                    {
-                        "name": "appGatewayIpConfig",
-                        "properties": {
-                            "subnet": {
-                                "id": "[parameters('subnetID')]"
-                            }
-                        }
-                    }
-                ],
-                "sslCertificates": "[variables('certData')]",
-                "frontendIPConfigurations": "[variables('frontendIPConfigurations')]",
-                "frontendPorts": "[variables('frontendPorts')]",
-                "backendAddressPools": "[variables('backendAddressPools')]",
-                "backendHttpSettingsCollection": "[variables('backendHttpSettingsCollection')]",
-                "httpListeners": "[variables('httpListeners')]",
-                "requestRoutingRules": "[variables('requestRoutingRules')]",
-                "probes": [],
-                "rewriteRuleSets": [],
-                "redirectConfigurations": [],
-                "webApplicationFirewallConfiguration": {
-                    "enabled": true,
-                    "firewallMode": "Detection",
-                    "ruleSetType": "OWASP",
-                    "ruleSetVersion": "3.0",
-                    "disabledRuleGroups": [],
-                    "requestBodyCheck": true,
-                    "maxRequestBodySizeInKb": 128,
-                    "fileUploadLimitInMb": 100
-                },
-                "enableHttp2": false,
-                "autoscaleConfiguration": {
-                    "minCapacity": "[parameters('minCapacity')]",
-                    "maxCapacity": "[parameters('maxCapacity')]"
-                }
-            }
-        }        
+        }       
     ]
 }

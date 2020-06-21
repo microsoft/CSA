@@ -85,7 +85,7 @@
     },
     "keyVaultLocation": {
       "type": "string",
-      "defaultValue": "eastus"
+      "defaultValue": "eastus2"
     },
     "keyVaultResourceGroup": {
       "type": "string",
