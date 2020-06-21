@@ -61,7 +61,7 @@
                 "input": {
                     "name": "[parameters('certificates')[copyIndex('certData')]]",
                     "properties": {
-                        "keyVaultSecretId": "[concat('https://',parameters('keyVaultName'),'.vault.azure.net/certificates/', parameters('certificates')[copyIndex('certData')])]"
+                        "keyVaultSecretId": "[concat('https://',parameters('keyVaultName'),'.vault.azure.net/secrets/', parameters('certificates')[copyIndex('certData')])]"
                     }
                 }
             },

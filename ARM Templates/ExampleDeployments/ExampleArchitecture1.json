@@ -2,6 +2,14 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.1",
   "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "resourceGroup": {
+      "type": "string",
+      "defaultValue": "testarm"
+    },
     "vNETName": {
       "type": "String",
       "defaultValue": "wbwpocTestVnet",
@@ -94,8 +102,8 @@
     "certificates": {
       "type": "array",
       "defaultValue": [
-        "ARM",
-        "ARM2"
+        "ARM/df47f485ecb1455d98eae9a950af6f47",
+        "ARM2/b5e5e9c31a034bffa8387ef38754333f"
       ]
     },
     "bastionHostName": {
@@ -228,6 +236,7 @@
       "name": "deployVNET",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         
       ],
@@ -254,6 +263,7 @@
       "name": "deployAppGWNSG",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         "deployVNET"
       ],
@@ -271,7 +281,7 @@
             "value": "AppGW-SN"
           },
           "subnetAddressPrefix": {
-            "value": "[reference(resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('vNETName'), 'AppGW-SN'), '2018-03-01').addressPrefix]"
+            "value": "[reference(concat(subscription().id,'/resourceGroups/', parameters('resourceGroup') , '/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/AppGW-SN'), '2018-03-01').addressPrefix]"
           },
           "nsgName": {
             "value": "AppGW-NSG"
@@ -291,6 +301,7 @@
       "name": "deploySharedNSG",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         "deployVNET",
         "deployAppGWNSG"
@@ -309,7 +320,7 @@
             "value": "Shared-SN"
           },
           "subnetAddressPrefix": {
-            "value": "[reference(resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('vNETName'), 'Shared-SN'), '2018-03-01').addressPrefix]"
+            "value": "[reference(concat(subscription().id,'/resourceGroups/', parameters('resourceGroup') , '/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/Shared-SN'), '2018-03-01').addressPrefix]"
           },
           "nsgName": {
             "value": "Shared-NSG"
@@ -327,6 +338,7 @@
       "name": "deployAPIMNSG",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         "deployVNET",
         "deploySharedNSG"
@@ -345,7 +357,7 @@
             "value": "APIM-SN"
           },
           "subnetAddressPrefix": {
-            "value": "[reference(resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('vNETName'), 'APIM-SN'), '2018-03-01').addressPrefix]"
+            "value": "[reference(concat(subscription().id,'/resourceGroups/',parameters('resourceGroup') ,'/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/APIM-SN'), '2018-03-01').addressPrefix]"
           },
           "nsgName": {
             "value": "APIM-NSG"
@@ -376,6 +388,7 @@
       "name": "deployAKSNSG",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         "deployVNET",
         "deployAPIMNSG"
@@ -394,7 +407,7 @@
             "value": "AKS-SN"
           },
           "subnetAddressPrefix": {
-            "value": "[reference(resourceId(resourceGroup().name, 'Microsoft.Network/virtualNetworks/subnets', parameters('vNETName'), 'AKS-SN'), '2018-03-01').addressPrefix]"
+            "value": "[reference(concat(subscription().id,'/resourceGroups/',parameters('resourceGroup') ,'/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/AKS-SN'), '2018-03-01').addressPrefix]"
           },
           "nsgName": {
             "value": "AKS-NSG"
@@ -406,6 +419,7 @@
       "name": "deployPublicIP1",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [],
       "properties": {
         "mode": "Incremental",
@@ -430,6 +444,7 @@
       "name": "createManagedIdentity",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
       ],
       "properties": {
@@ -448,7 +463,6 @@
     {
             "name": "deployKeyVaultAccess",
             "type": "Microsoft.Resources/deployments",
-            "location": "[parameters('keyVaultLocation')]",
             "resourceGroup": "[parameters('keyVaultResourceGroup')]",
             "apiVersion": "2017-05-10",
             "dependsOn": [
@@ -485,6 +499,7 @@
       "name": "deployAppGW",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
       "dependsOn": [
         "deployVNET",
         "deployPublicIP1"
