@@ -102,8 +102,8 @@
     "certificates": {
       "type": "array",
       "defaultValue": [
-        "ARM/df47f485ecb1455d98eae9a950af6f47",
-        "ARM2/b5e5e9c31a034bffa8387ef38754333f"
+        "ARMCert|ARM/df47f485ecb1455d98eae9a950af6f47",
+        "ARM2Cert|ARM2/b5e5e9c31a034bffa8387ef38754333f"
       ]
     },
     "bastionHostName": {

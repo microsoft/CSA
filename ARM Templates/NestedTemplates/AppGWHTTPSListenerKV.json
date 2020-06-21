@@ -59,9 +59,9 @@
                 "name": "certData",
                 "count": "[length(parameters('certificates'))]",
                 "input": {
-                    "name": "[split(parameters('certificates')[copyIndex('certData')],'/')[0]]",
+                    "name": "[split(parameters('certificates')[copyIndex('certData')],'|')[0]]",
                     "properties": {
-                        "keyVaultSecretId": "[concat('https://',parameters('keyVaultName'),'.vault.azure.net/secrets/', parameters('certificates')[copyIndex('certData')])]"
+                        "keyVaultSecretId": "[concat('https://',parameters('keyVaultName'),'.vault.azure.net/secrets/', split(parameters('certificates')[copyIndex('certData')],'|')[1])]"
                     }
                 }
             },
