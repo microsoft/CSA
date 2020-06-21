@@ -28,8 +28,7 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[parameters('objectId')]",
                         "permissions": {
-                            "secrets": "[parameters('secrets')]",
-                                "certificates": "[parameters('certificates')]"
+                            "secrets": "[parameters('secrets')]"
                         }
                     }   
                 ]
