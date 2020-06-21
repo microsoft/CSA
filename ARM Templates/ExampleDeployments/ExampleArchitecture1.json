@@ -91,10 +91,6 @@
       "type": "string",
       "defaultValue": "labVaultwb"
     },
-    "keyVaultLocation": {
-      "type": "string",
-      "defaultValue": "eastus2"
-    },
     "keyVaultResourceGroup": {
       "type": "string",
       "defaultValue": "lab"
