@@ -405,37 +405,12 @@
       }
     },
     {
-      "name": "deployPublicIP2",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2017-05-10",
-      "dependsOn": [],
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('deployPublicIPTemplateURL')]",
-          "contentVersion": "1.0.0.1"
-        },
-        "parameters": {
-          "publicIpAddressName": {
-            "value": "[concat(parameters('applicationGatewayName'),'pip2')]"
-          },
-          "sku": {
-              "value": "Standard"
-          },
-          "allocationMethod": {
-              "value": "Static"
-          }
-        }
-      }
-    },
-    {
       "name": "deployAppGW",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
       "dependsOn": [
         "deployVNET",
-        "deployPublicIP1",
-        "deployPublicIP2"
+        "deployPublicIP1"
       ],
       "properties": {
         "mode": "Incremental",
@@ -467,8 +442,7 @@
           },
           "publicIpAddressesIds": {
               "value": [
-                "[concat('PIP1|',reference('deployPublicIP1').outputs.publicIPID.value )]",
-                "[concat('PIP2|',reference('deployPublicIP2').outputs.publicIPID.value )]"
+                "[concat('PIP1|',reference('deployPublicIP1').outputs.publicIPID.value )]"
               ]
           },
           "frontendPorts": {
@@ -485,14 +459,13 @@
           },
           "backendHttpSettings": {
               "value": [
-                "Example-App-HTTPSetting|80|Http|Disabled|30|/",
-                "Example2-App-HTTPSetting|80|Http|Disabled|30|/"
+                "Example-App-HTTPSetting|80|Http|Disabled|30|/"
               ]
           },
           "httpListeners": {
               "value": [
                 "Example1-App-Listener|PIP1|HTTP-80",
-                "Example2-App-Listener|PIP2|HTTP-8080"
+                "Example2-App-Listener|PIP1|HTTP-8080"
               ]
           },
           "requestRoutingRules": {
