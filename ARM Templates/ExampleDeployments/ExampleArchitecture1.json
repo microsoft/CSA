@@ -220,7 +220,7 @@
     "deployPublicIPTemplateURL": "[concat(variables('gitUri'),'/PublicIPAddress.json?token=AHZUR2HQ5SPZTRNUKERQM3K667CZ2')]",
     "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]",
     "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2CRIINBOXCZ5GGRTTC67DQIS')]",
-    "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2BBFFII4V266H6WTYS67C3M2')]",
+    "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/UserAssignedManagedIdentity.json?token=AHZUR2FWA473GO43A4MYVQS67DRA2')]",
     "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]"
   },
   "resources": [
@@ -451,7 +451,9 @@
             "location": "[parameters('keyVaultLocation')]",
             "resourceGroup": "[parameters('keyVaultResourceGroup')]",
             "apiVersion": "2017-05-10",
-            "dependsOn": [],
+            "dependsOn": [
+              "createManagedIdentity"
+            ],
             "properties": {
                 "mode": "Incremental",
                 "templateLink": {
