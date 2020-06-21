@@ -79,6 +79,17 @@
         "type": "int",
         "defaultValue": 3
     },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "labVaultwb"
+    },
+    "certificates": {
+      "type": "array",
+      "defaultValue": [
+        "ARM",
+        "ARM2"
+      ]
+    },
     "bastionHostName": {
       "type": "string",
       "defaultValue": "wbpocdemobastion"
@@ -199,7 +210,8 @@
     "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]",
     "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]",
     "deployPublicIPTemplateURL": "[concat(variables('gitUri'),'/PublicIPAddress.json?token=AHZUR2HQ5SPZTRNUKERQM3K667CZ2')]",
-    "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]"
+    "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]",
+    "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2ABDKBA525664J35L2667C4W')]"
   },
   "resources": [
     {
@@ -415,7 +427,7 @@
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('deployAppGWHTTPListenerTemplateURL')]",
+          "uri": "[variables('deployAppGWHTTPSListenerKVTemplateURL')]",
           "contentVersion": "1.0.0.1"
         },
         "parameters": {
@@ -444,6 +456,15 @@
               "value": [
                 "[concat('PIP1|',reference('deployPublicIP1').outputs.publicIPID.value )]"
               ]
+          },
+          "keyVaultName": {
+            "value": "[parameters('keyVaultName')]"
+          },
+          "identityName": {
+              "value": "[concat(parameters('applicationGatewayName'),'-identity')]"
+          },
+          "certificates": {
+              "value": "[parameters('certificates')]"
           },
           "frontendPorts": {
               "value": [
