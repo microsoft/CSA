@@ -83,6 +83,14 @@
       "type": "string",
       "defaultValue": "labVaultwb"
     },
+    "keyVaultLocation": {
+      "type": "string",
+      "defaultValue": "eastus"
+    },
+    "keyVaultResourceGroup": {
+      "type": "string",
+      "defaultValue": "lab"
+    },
     "certificates": {
       "type": "array",
       "defaultValue": [
@@ -459,6 +467,12 @@
           },
           "keyVaultName": {
             "value": "[parameters('keyVaultName')]"
+          },
+          "keyVaultLocation": {
+            "value": "[parameters('keyVaultLocation')]"
+          },
+          "keyVaultResourceGroup": {
+            "value": "[parameters('keyVaultResourceGroup')]"
           },
           "identityName": {
               "value": "[concat(parameters('applicationGatewayName'),'-identity')]"

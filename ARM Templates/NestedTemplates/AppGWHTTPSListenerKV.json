@@ -29,7 +29,7 @@
         "keyVaultResourceGroup": {
             "type": "string"
         },
-        "keyValutLocation": {
+        "keyVaultLocation": {
             "type": "string"
         },
         "identityName": {
@@ -176,7 +176,7 @@
         {
             "name": "deployKeyVaultAccess",
             "type": "Microsoft.Resources/deployments",
-            "location": "[parameters('keyValutLocation')]",
+            "location": "[parameters('keyVaultLocation')]",
             "resourceGroup": "[parameters('keyVaultResourceGroup')]",
             "apiVersion": "2017-05-10",
             "dependsOn": [],
