@@ -8,9 +8,6 @@
         "secrets": {
             "type": "array"
         },
-        "certificates": {
-            "type": "array"
-        },
         "objectId": {
             "type": "string"
         }
@@ -19,9 +16,8 @@
     "resources": [
         {
             "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[concat(parameters('keyVaultName'), '/add')]",
-            "dependsOn": [],
             "apiVersion": "2019-09-01",
+            "name": "[concat(parameters('keyVaultName'), '/add')]",
             "properties": {
                 "accessPolicies": [
                     {
@@ -30,9 +26,9 @@
                         "permissions": {
                             "secrets": "[parameters('secrets')]"
                         }
-                    }   
+                    }
                 ]
             }
-        }       
+        }      
     ]
 }

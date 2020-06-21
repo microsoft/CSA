@@ -201,25 +201,6 @@
                             "Restore"
                         ]
                     },
-                    "certificates": {
-                        "value": [
-                            "Get",
-                            "List",
-                            "Update",
-                            "Create",
-                            "Import",
-                            "Delete",
-                            "Recover",
-                            "Backup",
-                            "Restore",
-                            "ManageContacts",
-                            "ManageIssuers",
-                            "GetIssuers",
-                            "ListIssuers",
-                            "SetIssuers",
-                            "DeleteIssuers"
-                        ]
-                    },
                     "objectId": {
                         "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]"
                     }
