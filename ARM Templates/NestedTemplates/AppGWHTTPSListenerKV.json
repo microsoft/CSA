@@ -26,6 +26,12 @@
         "keyVaultName": {
             "type": "string"
         },
+        "keyVaultResourceGroup": {
+            "type": "string"
+        },
+        "keyValutLocation": {
+            "type": "string"
+        },
         "identityName": {
             "type": "string"
         },
@@ -52,6 +58,8 @@
         }
     },
     "variables": {
+        "gitUri": "https://raw.githubusercontent.com/microsoft/SoutheastCSA/master/ARM%20Templates/NestedTemplates",
+        "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]",
         "identityID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]",
         "copy": [
             {
@@ -166,49 +174,58 @@
             "location": "[resourceGroup().location]"
         },
         {
-            "type": "Microsoft.KeyVault/vaults/accessPolicies",
-            "name": "[concat(parameters('keyVaultName'), '/add')]",
-            "dependsOn": [
-                "[parameters('identityName')]"
-            ],
-            "apiVersion": "2019-09-01",
+            "name": "deployKeyVaultAccess",
+            "type": "Microsoft.Resources/deployments",
+            "location": "[parameters('keyValutLocation')]",
+            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [],
             "properties": {
-                "accessPolicies": [
-                {
-                    "tenantId": "[subscription().tenantId]",
-                    "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]",
-                    "permissions": {
-                        "secrets": [
-                                "Get",
-                                "List",
-                                "Set",
-                                "Delete",
-                                "Recover",
-                                "Backup",
-                                "Restore"
-                            ],
-                            "certificates": [
-                                "Get",
-                                "List",
-                                "Update",
-                                "Create",
-                                "Import",
-                                "Delete",
-                                "Recover",
-                                "Backup",
-                                "Restore",
-                                "ManageContacts",
-                                "ManageIssuers",
-                                "GetIssuers",
-                                "ListIssuers",
-                                "SetIssuers",
-                                "DeleteIssuers"
-                            ]
+                "mode": "Incremental",
+                "templateLink": {
+                "uri": "[variables('deployKeyVaultAccessTemplate')]",
+                "contentVersion": "1.0.0.1"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secrets": {
+                        "value": [
+                            "Get",
+                            "List",
+                            "Set",
+                            "Delete",
+                            "Recover",
+                            "Backup",
+                            "Restore"
+                        ]
+                    },
+                    "certificates": {
+                        "value": [
+                            "Get",
+                            "List",
+                            "Update",
+                            "Create",
+                            "Import",
+                            "Delete",
+                            "Recover",
+                            "Backup",
+                            "Restore",
+                            "ManageContacts",
+                            "ManageIssuers",
+                            "GetIssuers",
+                            "ListIssuers",
+                            "SetIssuers",
+                            "DeleteIssuers"
+                        ]
+                    },
+                    "objectId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]"
                     }
                 }
-                ]
             }
-            },
+        },        
         {
             "name": "[parameters('applicationGatewayName')]",
             "type": "Microsoft.Network/applicationGateways",
