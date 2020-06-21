@@ -10,9 +10,6 @@
         },
         "allocationMethod": {
             "type": "string"
-        },
-        "publicIpZones": {
-            "type": "array"
         }
     },
     "variables": {},
@@ -25,7 +22,6 @@
             "sku": {
                 "name": "[parameters('sku')]"
             },
-            "zones": "[parameters('publicIpZones')]",
             "properties": {
                 "publicIPAllocationMethod": "[parameters('allocationMethod')]"
             }

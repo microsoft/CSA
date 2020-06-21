@@ -400,9 +400,6 @@
           },
           "allocationMethod": {
               "value": "Static"
-          },
-          "publicIpZones": {
-              "value": ["1"]
           }
         }
       }
@@ -427,9 +424,6 @@
           },
           "allocationMethod": {
               "value": "Static"
-          },
-          "publicIpZones": {
-              "value": ["2"]
           }
         }
       }
