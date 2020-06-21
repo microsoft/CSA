@@ -26,13 +26,7 @@
         "keyVaultName": {
             "type": "string"
         },
-        "keyVaultResourceGroup": {
-            "type": "string"
-        },
-        "keyVaultLocation": {
-            "type": "string"
-        },
-        "identityName": {
+        "identityID": {
             "type": "string"
         },
         "certificates": {
@@ -60,7 +54,6 @@
     "variables": {
         "gitUri": "https://raw.githubusercontent.com/microsoft/SoutheastCSA/master/ARM%20Templates/NestedTemplates",
         "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
-        "identityID": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))]",
         "copy": [
             {
                 "name": "certData",
@@ -168,46 +161,6 @@
     },
     "resources": [
         {
-            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "2018-11-30",
-            "name": "[parameters('identityName')]",
-            "location": "[resourceGroup().location]"
-        },
-        {
-            "name": "deployKeyVaultAccess",
-            "type": "Microsoft.Resources/deployments",
-            "location": "[parameters('keyVaultLocation')]",
-            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                "uri": "[variables('deployKeyVaultAccessTemplate')]",
-                "contentVersion": "1.0.0.1"
-                },
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "secrets": {
-                        "value": [
-                            "Get",
-                            "List",
-                            "Set",
-                            "Delete",
-                            "Recover",
-                            "Backup",
-                            "Restore"
-                        ]
-                    },
-                    "objectId": {
-                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('identityName'))).principalId]"
-                    }
-                }
-            }
-        },        
-        {
             "name": "[parameters('applicationGatewayName')]",
             "type": "Microsoft.Network/applicationGateways",
             "apiVersion": "2019-09-01",
@@ -219,7 +172,7 @@
             "identity": {
                 "type": "UserAssigned",
                 "userAssignedIdentities": {
-                    "[variables('identityID')]": {}
+                    "[parameters('identityID')]": {}
                 }
             },
             "tags": {},

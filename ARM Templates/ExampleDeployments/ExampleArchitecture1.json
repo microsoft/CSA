@@ -219,7 +219,9 @@
     "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]",
     "deployPublicIPTemplateURL": "[concat(variables('gitUri'),'/PublicIPAddress.json?token=AHZUR2HQ5SPZTRNUKERQM3K667CZ2')]",
     "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]",
-    "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2BBFFII4V266H6WTYS67C3M2')]"
+    "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2CRIINBOXCZ5GGRTTC67DQIS')]",
+    "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2BBFFII4V266H6WTYS67C3M2')]",
+    "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]"
   },
   "resources": [
     {
@@ -425,6 +427,59 @@
       }
     },
     {
+      "name": "createManagedIdentity",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('createManagedIdentityTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "identityName": {
+              "value": "[concat(parameters('applicationGatewayName'),'-identity')]"
+          }
+        }
+      }
+    },
+    {
+            "name": "deployKeyVaultAccess",
+            "type": "Microsoft.Resources/deployments",
+            "location": "[parameters('keyVaultLocation')]",
+            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+            "apiVersion": "2017-05-10",
+            "dependsOn": [],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                "uri": "[variables('deployKeyVaultAccessTemplate')]",
+                "contentVersion": "1.0.0.1"
+                },
+                "parameters": {
+                    "keyVaultName": {
+                        "value": "[parameters('keyVaultName')]"
+                    },
+                    "secrets": {
+                        "value": [
+                            "Get",
+                            "List",
+                            "Set",
+                            "Delete",
+                            "Recover",
+                            "Backup",
+                            "Restore"
+                        ]
+                    },
+                    "objectId": {
+                        "value": "[reference('createManagedIdentity').outputs.principalId.value]"
+                    }
+                }
+            }
+        }, 
+    {
       "name": "deployAppGW",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
@@ -468,14 +523,8 @@
           "keyVaultName": {
             "value": "[parameters('keyVaultName')]"
           },
-          "keyVaultLocation": {
-            "value": "[parameters('keyVaultLocation')]"
-          },
-          "keyVaultResourceGroup": {
-            "value": "[parameters('keyVaultResourceGroup')]"
-          },
-          "identityName": {
-              "value": "[concat(parameters('applicationGatewayName'),'-identity')]"
+          "identityID": {
+              "value": "[reference('createManagedIdentity').outputs.resourceId.value]"
           },
           "certificates": {
               "value": "[parameters('certificates')]"
