@@ -131,7 +131,7 @@
                         },
                         "protocol": "Https",
                         "sslCertificate": {
-                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName') ,'/sslCertificates/', parameters('certificates')[copyIndex('httpListeners')])]"
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName') ,'/sslCertificates/', split(parameters('certificates')[copyIndex('httpListeners')],'/')[0])]"
                         },
                         "hostNames": [],
                         "requireServerNameIndication": false
