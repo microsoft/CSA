@@ -1,0 +1,16 @@
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.dacpac
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.dll
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.pdb
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.sqlprojAssemblyReference.cache
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.dll
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.pdb
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\Model.xml
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\refactor.xml
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\postdeploy.sql
+C:\Users\Neal-PC\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\predeploy.sql
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.dacpac
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.dll
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\bin\Debug\SQLMICLRDemo.pdb
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.sqlprojAssemblyReference.cache
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.dll
+C:\Users\cneal\Documents\GIT\microsoft\azure-sql\sqlmi-clr\SQLMICLRDemo\obj\Debug\SQLMICLRDemo.pdb
