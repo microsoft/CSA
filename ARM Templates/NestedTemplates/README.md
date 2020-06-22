@@ -10,6 +10,10 @@ The Nested Templates are built to be generic in nature with the ability to pass 
 [Application Gateway with HTTP Listener](#AppGWHTTPListenerTemplate)  
 [AppGW with HTTPS Listener Template and Key Vault Integration](#AppGWHTTPSListenerKVTemplate)   
 [User Assigned Managed Identity](#UserAssignedManagedIdentityTemplate)  
+[Application Insights Instance](#ApplicationInsightsTemplate)
+[Log Analytics Workspace](#LogAnalyticsWorkspace)  
+[Key Vault](#KeyVault)  
+[Key Vault Secret](#KeyVaultSecret)
 
 ## <a name="VnetTemplate"></a>VNet Template  
 This template will deploy a Virtual Network in Azure. It accepts a dynamic list of Subnets with their IP Ranges.  
@@ -580,5 +584,190 @@ NA
                   "value": "[reference('createManagedIdentity').outputs.principalId.value]"
               }
           }
+      }
+    }
+
+## <a name="ApplicationInsightsTemplate"></a>Application Insights Template  
+This template will create an Application Insights.   
+
+### Typical Nested Template used before  
+NA  
+
+### Typical Nested Template used after  
+APIM  
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  name | Application Insights instance name   | poc-appinsights    |
+
+### Output  
+"appInsightsID": The resource id of the Application Insights instance that was created  
+
+### Sample Deployment  
+
+    {
+      "name": "deployAppInsights",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAppInsightsTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "name": {
+            "value": "[parameters('appInsightsName')]"
+          }
+        }
+      }
+    }  
+
+## <a name="LogAnalyticsWorkspace"></a>Log Analytics Workspace Template  
+This template will create a Log Analytics Workspace.   
+
+### Typical Nested Template used before  
+NA  
+
+### Typical Nested Template used after  
+VMInsights  
+DiagnosticSettings    
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  workspaceName | Log Analytics workspace name   | poc-laworkspace    |
+
+### Output  
+"workspaceId": The resource id of the Log Analytics Workspace that was created  
+"workspaceKey": The primary key for the workspace
+"customerId": The customer id for the workspace  
+
+### Sample Deployment  
+
+    {
+      "name": "deployLAWorkspace",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployLogAnalyticsURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[parameters('workspaceName')]"
+          }
+        }
+      }
+    }
+
+## <a name="KeyVault"></a>Key Vault Template  
+This template will deploy an Azure Key Vault   
+
+### Typical Nested Template used before  
+NA     
+
+### Typical Nested Template used after  
+KeyVaultAccessPolicy  
+KeyVaultSecrets      
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  vaultName | Key Vault name   | poc-keyvault    |
+
+### Output  
+"vaultId": The resource id of the Key Vault that was created   
+
+### Sample Deployment  
+
+    {
+      "name": "deployKeyVault",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployKeyVaultURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vaultName": {
+            "value": "[parameters('vaultName')]"
+          },
+          "workspaceID": {
+            "value": "[reference('deployLAWorkspace').outputs.workspaceId.value]"
+          }
+        }
+      }
+    }
+
+## <a name="KeyVaultSecret"></a>Key Vault Secret Template  
+This template will add a secret to an Azure Key Vault   
+
+### Typical Nested Template used before  
+KeyVault     
+
+### Typical Nested Template used after  
+NA        
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  vaultName | Key Vault name   | poc-keyvault    |
+|  secretName | Secret name to add to Key Vault   | supersecret    |   
+|  contentType | Type of data being added to secret   | text/plain    |  
+|  value | Value of the secret being added   | supersecretvalue    |  
+
+### Output  
+NA  
+
+### Sample Deployment  
+
+    {
+      "name": "addKeyVaultSecret",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addKeyVaultSecretTemplate')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "keyVaultName": {
+              "value": "[parameters('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "[parameters('keyVaultSecretName')]"
+          },
+          "contentType": {
+              "value": "[parameters('keyVaultContentType')]"
+          },
+          "value": {
+              "value": "[parameters('keyVaultSecretValue')]"
+          }
+        }
       }
     }

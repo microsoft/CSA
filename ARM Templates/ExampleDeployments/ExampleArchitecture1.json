@@ -102,6 +102,18 @@
         "ARM2Cert|ARM2/b5e5e9c31a034bffa8387ef38754333f"
       ]
     },
+    "keyVaultSecretName": {
+      "type": "string",
+      "defaultValue": "pocsecret"
+    },
+    "keyVaultContentType": {
+      "type": "string",
+      "defaultValue": "text/plain"
+    },
+    "keyVaultSecretValue": {
+      "type": "string",
+      "defaultValue": "secretvalue"
+    },
     "bastionHostName": {
       "type": "string",
       "defaultValue": "wbpocdemobastion"
@@ -225,7 +237,8 @@
     "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]",
     "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2CRIINBOXCZ5GGRTTC67DQIS')]",
     "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/UserAssignedManagedIdentity.json?token=AHZUR2FWA473GO43A4MYVQS67DRA2')]",
-    "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]"
+    "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
+    "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]"
   },
   "resources": [
     {
@@ -457,40 +470,69 @@
       }
     },
     {
-            "name": "deployKeyVaultAccess",
-            "type": "Microsoft.Resources/deployments",
-            "resourceGroup": "[parameters('keyVaultResourceGroup')]",
-            "apiVersion": "2017-05-10",
-            "dependsOn": [
-              "createManagedIdentity"
-            ],
-            "properties": {
-                "mode": "Incremental",
-                "templateLink": {
-                "uri": "[variables('deployKeyVaultAccessTemplate')]",
-                "contentVersion": "1.0.0.1"
-                },
-                "parameters": {
-                    "keyVaultName": {
-                        "value": "[parameters('keyVaultName')]"
-                    },
-                    "secrets": {
-                        "value": [
-                            "Get",
-                            "List",
-                            "Set",
-                            "Delete",
-                            "Recover",
-                            "Backup",
-                            "Restore"
-                        ]
-                    },
-                    "objectId": {
-                        "value": "[reference('createManagedIdentity').outputs.principalId.value]"
-                    }
-                }
-            }
-        }, 
+      "name": "deployKeyVaultAccess",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "createManagedIdentity"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployKeyVaultAccessTemplate')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "keyVaultName": {
+              "value": "[parameters('keyVaultName')]"
+          },
+          "secrets": {
+              "value": [
+                  "Get",
+                  "List",
+                  "Set",
+                  "Delete",
+                  "Recover",
+                  "Backup",
+                  "Restore"
+              ]
+          },
+          "objectId": {
+              "value": "[reference('createManagedIdentity').outputs.principalId.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "addKeyVaultSecret",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addKeyVaultSecretTemplate')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "keyVaultName": {
+              "value": "[parameters('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "[parameters('keyVaultSecretName')]"
+          },
+          "contentType": {
+              "value": "[parameters('keyVaultContentType')]"
+          },
+          "value": {
+              "value": "[parameters('keyVaultSecretValue')]"
+          }
+        }
+      }
+    }, 
     {
       "name": "deployAppGW",
       "type": "Microsoft.Resources/deployments",
