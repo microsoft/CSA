@@ -691,6 +691,57 @@
           }
         }
       }
+    },
+    {
+      "name": "deployPublicIPBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('bastionHostName'),'pip1')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Static"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAzureBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureBastionTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "bastionHostName": {
+              "value": "[parameters('bastionHostName')]"
+          },
+          "subnetId": {
+              "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]"
+          },
+          "publicIpId": {
+              "value": "[reference('deployPublicIPBastion').outputs.publicIPID.value]"
+          }
+        }
+      }
     }
   ],
   "outputs": {

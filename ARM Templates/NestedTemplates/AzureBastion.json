@@ -2,47 +2,23 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "location": {
-            "type": "string"
-        },
-        "resourceGroup": {
-            "type": "string"
-        },
         "bastionHostName": {
             "type": "string"
         },
         "subnetId": {
             "type": "string"
         },
-        "publicIpAddressName": {
-            "type": "string"
-        },
-        "workspaceId": {
+        "publicIpId": {
             "type": "string"
         }
     },
     "resources": [
         {
-            "apiVersion": "2019-02-01",
-            "type": "Microsoft.Network/publicIpAddresses",
-            "name": "[parameters('publicIpAddressName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAllocationMethod": "Static"
-            },
-            "tags": {}
-        },
-        {
             "apiVersion": "2019-04-01",
             "type": "Microsoft.Network/bastionHosts",
             "name": "[parameters('bastionHostName')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[resourceId(parameters('resourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
-            ],
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -52,34 +28,13 @@
                                 "id": "[parameters('subnetId')]"
                             },
                             "publicIPAddress": {
-                                "id": "[resourceId(parameters('resourceGroup'), 'Microsoft.Network/publicIpAddresses', parameters('publicIpAddressName'))]"
+                                "id": "[parameters('publicIpId')]"
                             }
                         }
                     }
                 ]
             },
-            "tags": {},
-            "resources": [
-                {
-                    "type": "providers/diagnosticSettings",
-                    "name": "Microsoft.Insights/loganalytics",
-                    "dependsOn": [
-                        "[parameters('bastionHostName')]"
-                    ],
-                    "apiVersion": "2017-05-01-preview",
-                    "properties": {
-                        "name": "loganalytics",
-                        "workspaceId": "[parameters('workspaceId')]",
-                        "logs": [
-                            {
-                                "category": "BastionAuditLogs",
-                                "enabled": true
-                            }
-                        ],
-                        "metrics": []
-                    }
-                }
-            ]
+            "tags": {}
         }
     ]
 }

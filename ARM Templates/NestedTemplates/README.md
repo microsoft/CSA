@@ -14,7 +14,9 @@ The Nested Templates are built to be generic in nature with the ability to pass 
 [Log Analytics Workspace](#LogAnalyticsWorkspace)  
 [Key Vault](#KeyVault)  
 [Key Vault Secret](#KeyVaultSecret)  
-[Azure Container Registry](#AzureContainerRegistry)
+[Azure Container Registry](#AzureContainerRegistry)  
+[Azure API Management](#APIM)  
+[Azure Bastion Host](#AzureBastion)  
 
 ## <a name="VnetTemplate"></a>VNet Template  
 This template will deploy a Virtual Network in Azure. It accepts a dynamic list of Subnets with their IP Ranges.  
@@ -889,3 +891,79 @@ This template requires you to pass in the following parameters:
       }
     }
 
+## <a name="AzureBastion"></a>Azure Bastion Template  
+This template will deploy an Azure Bastion to an existing VNET 
+
+### Typ
+Vnet  
+PublicIPAddress  
+
+### Typical Nested Template used after  
+WindowsVirtualMachine  
+LinuxVirtualMachine             
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  bastionHostName | Name for the bastion host  | poc-bastionhost    |
+|  subnetId | SubnetID of the subnet dedicated to Azure Bastion  | [concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]    |
+|  publicIpId | Resource ID of the public ip for the bastion host  | [reference('deployPublicIPBastion').outputs.publicIPID.value]   |  
+
+### Output  
+NA 
+
+### Sample Deployment  
+
+    {
+      "name": "deployPublicIPBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('bastionHostName'),'pip1')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Static"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAzureBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureBastionTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "bastionHostName": {
+              "value": "[parameters('bastionHostName')]"
+          },
+          "subnetId": {
+              "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]"
+          },
+          "publicIpId": {
+              "value": "[reference('deployPublicIPBastion').outputs.publicIPID.value]"
+          }
+        }
+      }
+    }
