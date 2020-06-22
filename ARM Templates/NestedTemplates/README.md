@@ -10,10 +10,11 @@ The Nested Templates are built to be generic in nature with the ability to pass 
 [Application Gateway with HTTP Listener](#AppGWHTTPListenerTemplate)  
 [AppGW with HTTPS Listener Template and Key Vault Integration](#AppGWHTTPSListenerKVTemplate)   
 [User Assigned Managed Identity](#UserAssignedManagedIdentityTemplate)  
-[Application Insights Instance](#ApplicationInsightsTemplate)
+[Application Insights Instance](#ApplicationInsightsTemplate)  
 [Log Analytics Workspace](#LogAnalyticsWorkspace)  
 [Key Vault](#KeyVault)  
-[Key Vault Secret](#KeyVaultSecret)
+[Key Vault Secret](#KeyVaultSecret)  
+[Azure Container Registry](#AzureContainerRegistry)
 
 ## <a name="VnetTemplate"></a>VNet Template  
 This template will deploy a Virtual Network in Azure. It accepts a dynamic list of Subnets with their IP Ranges.  
@@ -771,3 +772,120 @@ NA
         }
       }
     }
+
+## <a name="AzureContainerRegistry"></a>Azure Container Registry Template  
+This template will deploy an Azure Container Registry   
+
+### Typical Nested Template used before  
+NA     
+
+### Typical Nested Template used after  
+PrivateEndpoint  
+PrivateDNSZone  
+PrivateDNSARecord  
+PrivateAKSMICluster          
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  acrName | Azure Container Registry name   | poc-acr    |  
+
+### Output  
+"acrId": The resource id of the Azure Container Registry created  
+
+### Sample Deployment  
+
+    {
+      "name": "deployACR",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployACRURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "acrName": {
+            "value": "[parameters('acrName')]"
+          }
+        }
+      }
+    }  
+
+## <a name="APIM"></a>APIM Template  
+This template will deploy an Azure API Management Instance    
+
+### Typical Nested Template used before  
+NA    
+
+### Typical Nested Template used after  
+NA           
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  apimName | Name for the APIM instance  | poc-apim    |
+|  sku | Allowed Values: Basic, Consumption, Developer, Standard, Premium  | Standard    |
+|  capacity | Capacity of the SKU (number of deployed units of the SKU).  | 2   |  
+|  apimEmail | Publisher email  | example@microsoft.com   |  
+|  subnetID | Resource ID of the subnet that APIM will sit on | [concat(reference('deployVNET').outputs.vnetId.value,'/subnets/APIM-SN')]   |  
+|  publisherName  | Publisher Name  | Microsoft  |
+|  virtualNetworkType | Allowed Values: Internal, External | Internal |
+|  disableGateway  | Boolean allowing you to diable gateway | false |
+
+### Output  
+"APIMIP": The resource id of the APIM Instance created  
+
+### Sample Deployment  
+
+    {
+      "name": "deployAPIM",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET",
+        "deployAppInsights",
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAPIMTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apimname": {
+            "value": "[parameters('apimName')]"
+          },
+          "sku": {
+            "value": "[parameters('apimsku')]"
+          },
+          "capacity": {
+            "value": "[parameters('apimcapacity')]"
+          },
+          "apimEmail": {
+            "value": "[parameters('apimEmail')]"
+          },
+          "subnetID": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/APIM-SN')]"
+          },
+          "publisherName": {
+            "value": "[parameters('apimPublisherName')]"
+          },
+          "virtualNetworkType": {
+            "value": "[parameters('apimVirtualNetworkType')]"
+          },
+          "disableGateway": {
+            "value": "[parameters('apimDisableGateway')]"
+          }
+        }
+      }
+    }
+

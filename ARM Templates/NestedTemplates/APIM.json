@@ -6,7 +6,17 @@
             "type": "String"
         },
         "sku": {
-            "type": "string"
+            "type": "string",
+            "allowedValues": [
+                "Basic",
+                "Consumption",
+                "Developer",
+                "Standard",
+                "Premium"
+            ],  
+            "metadata": {
+                "description": "The pricing tier of this API Management service"
+            }
         },
         "capacity": {
             "type": "int"
@@ -14,17 +24,17 @@
         "apimEmail": {
             "type": "string"
         },
-        "appinsightsID": {
-            "type": "String"
-        },
         "subnetID": {
             "type": "string"
         },
-        "loggerName": {
+        "publisherName": {
             "type": "string"
         },
-        "workspaceId": {
+        "virtualNetworkType": {
             "type": "string"
+        },
+        "disableGateway": {
+            "type": "bool"
         }
     },
     "variables": {},
@@ -38,9 +48,12 @@
                 "name": "[parameters('sku')]",
                 "capacity": "[parameters('capacity')]"
             },
+            "identity": {
+                "type": "SystemAssigned"
+            },
             "properties": {
                 "publisherEmail": "[parameters('apimEmail')]",
-                "publisherName": "Demo Brands",
+                "publisherName": "[parameters('publisherName')]",
                 "notificationSenderEmail": "apimgmt-noreply@mail.windowsazure.com",
                 "hostnameConfigurations": [
                     {
@@ -63,80 +76,10 @@
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "False",
                     "Microsoft.WindowsAzure.ApiManagement.Gateway.Protocols.Server.Http2": "False"
                 },
-                "virtualNetworkType": "Internal",
-                "disableGateway": false,
+                "virtualNetworkType": "[parameters('virtualNetworkType')]",
+                "disableGateway": "[parameters('disableGateway')]",
                 "apiVersionConstraint": {}
-            },
-            "resources": [
-                {
-                    "apiVersion": "2019-01-01",
-                    "type": "loggers",
-                    "name": "[parameters('loggerName')]",
-                    "dependsOn": [
-                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'))]"
-                    ],
-                    "properties": {
-                        "loggerType": "applicationInsights",
-                        "resourceId": "[parameters('appInsightsId')]",
-                        "credentials": {
-                            "instrumentationKey": "[reference(parameters('appInsightsId'), '2015-05-01').InstrumentationKey]"
-                        }
-                    }
-                },
-                {
-                    "apiVersion": "2019-01-01",
-                    "type": "diagnostics",
-                    "name": "applicationinsights",
-                    "dependsOn": [
-                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'))]",
-                        "[concat('Microsoft.ApiManagement/service/', parameters('apimname'), '/loggers/', parameters('loggerName'))]"
-                    ],
-                    "properties": {
-                        "loggerId": "[concat('/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ApiManagement/service/', parameters('apimname'), '/loggers/', parameters('loggerName'))]",
-                        "alwaysLog": "allErrors",
-                        "sampling": {
-                            "percentage": 100,
-                            "samplingType": "fixed"
-                        }
-                    }
-                },
-                {
-                    "type": "providers/diagnosticSettings",
-                    "name": "Microsoft.Insights/loganalytics",
-                    "dependsOn": [
-                        "[parameters('apimName')]"
-                    ],
-                    "apiVersion": "2017-05-01-preview",
-                    "properties": {
-                        "name": "loganalytics",
-                        "workspaceId": "[parameters('workspaceId')]",
-                        "logs": [
-                            {
-                                "category": "GatewayLogs",
-                                "enabled": true
-                            }
-                        ],
-                        "metrics": [
-                            {
-                                "category": "Gateway Requests",
-                                "enabled": true
-                            },
-                            {
-                                "category": "Capacity",
-                                "enabled": true
-                            },
-                            {
-                                "category": "EventHub Events",
-                                "enabled": true
-                            },
-                            {
-                                "category": "Network Status",
-                                "enabled": true
-                            }
-                        ]
-                    }
-                }
-            ]
+            }
         }
         
     ],

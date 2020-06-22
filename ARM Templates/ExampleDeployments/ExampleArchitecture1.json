@@ -59,6 +59,18 @@
       "type": "string",
       "defaultValue": "bwatts@microsoft.com"
     },
+    "apimPublisherName": {
+      "type": "string",
+      "defaultValue": "POC APIM Deployment"
+    },
+    "APIMVirtualNetworkType": {
+      "type": "string",
+      "defaultValue": "Internal"
+    },
+    "apimDisableGateway": {
+      "type": "bool",
+      "defaultValue": false
+    },
     "applicationGatewayName": {
       "type": "string",
       "defaultValue": "wbwpocTestappgw"
@@ -238,7 +250,9 @@
     "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2CRIINBOXCZ5GGRTTC67DQIS')]",
     "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/UserAssignedManagedIdentity.json?token=AHZUR2FWA473GO43A4MYVQS67DRA2')]",
     "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
-    "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]"
+    "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]",
+    "deployACRURL": "[concat(variables('gitUri'),'/ACR.json?token=AHZUR2BSH55ROHWSDR6A3RC67FE42')]",
+    "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json?token=AHZUR2GRGZKBM7HM25N4TNS67FHLC')]"
   },
   "resources": [
     {
@@ -612,6 +626,68 @@
                 "Example1-App-RoutingRule|Example1-App-Listener|Example1-BEPool|Example-App-HTTPSetting",
                 "Example2-App-RoutingRule|Example2-App-Listener|Example2-BEPool|Example-App-HTTPSetting"
               ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployACR",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployACRURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "acrName": {
+            "value": "[parameters('acrName')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAPIM",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET",
+        "deployAppInsights",
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAPIMTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apimname": {
+            "value": "[parameters('apimName')]"
+          },
+          "sku": {
+            "value": "[parameters('apimsku')]"
+          },
+          "capacity": {
+            "value": "[parameters('apimcapacity')]"
+          },
+          "apimEmail": {
+            "value": "[parameters('apimEmail')]"
+          },
+          "subnetID": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/APIM-SN')]"
+          },
+          "publisherName": {
+            "value": "[parameters('apimPublisherName')]"
+          },
+          "virtualNetworkType": {
+              "value": "[parameters('apimVirtualNetworkType')]"
+          },
+          "disableGateway": {
+              "value": "[parameters('apimDisableGateway')]"
           }
         }
       }
