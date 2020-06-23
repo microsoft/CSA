@@ -17,6 +17,9 @@ The Nested Templates are built to be generic in nature with the ability to pass 
 [Azure Container Registry](#AzureContainerRegistry)  
 [Azure API Management](#APIM)  
 [Azure Bastion Host](#AzureBastion)  
+[Azure Redis Cache VNet Injection](#AzureRedisCacheVnet)  
+[Enable VM Insights](#EnabledVMInsights)  
+[Get Nic IP](#GetNicIP)  
 
 ## <a name="VnetTemplate"></a>VNet Template  
 This template will deploy a Virtual Network in Azure. It accepts a dynamic list of Subnets with their IP Ranges.  
@@ -963,6 +966,170 @@ NA
           },
           "publicIpId": {
               "value": "[reference('deployPublicIPBastion').outputs.publicIPID.value]"
+          }
+        }
+      }
+    }
+
+## <a name="AzureRedisCacheVNet"></a>Azure Redis Cache VNet Integrated Template  
+This template will deploy a premium version of Azure Redis Cache injected on a VNet  
+
+### Typ
+Vnet    
+
+### Typical Nested Template used after  
+NA             
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  cahceName | Name for the Azure Redis Cache  | poc-azurecache    |
+|  capacity | The size of the Redis cache to deploy  | 2    |
+|  subnetId | Resource ID of the subnet it will reside on  | [concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]   |
+|  saConnectionString  |  Storage Account Connection String  |  
+|  ipAddress | IP Address to be assigned to cache  | 10.10.10.10   |  
+|  backupEnabled | Boolean either enabling or disabling backup  | true   |
+|  backupFrequency | How often to run a backup  | 90   |
+|  maxSnapshots | Maximum number of snaphots allowed  | 10   |
+
+### Output  
+NA 
+
+### Sample Deployment  
+
+    {
+      "name": "deployAzureCacheVault",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureCacheBusURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "cacheName": {
+            "value": "[parameters('cacheName')]"
+          },
+          "subnetId": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/privateep-SN')]"
+          },
+          "saConnectionString": {
+            "value": "[reference('deployPrivateStorage').outputs.saConnectionString.value]"
+          },
+          "ipAddress": {
+            "value": "192.168.1.180"
+          },
+          "bakcupEnabled": {
+            "value": true
+          },
+          "backupFrequency": {
+            "value": 90
+          },
+          "maxSnaphots": {
+            "value": 10
+          }
+        }
+      }
+    }  
+
+## <a name="EnableVMInsights"></a>Enabled VM Insights on an Existing VM Template  
+This template will enable VM Insights (Azure Monitor for VMs) to an existing VM  
+
+### Typical Neted Template used before
+Log_Analytics_Workspace  
+WindowsVirtualMachine  
+LinuxVirtualMachine      
+
+### Typical Nested Template used after  
+NA             
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  vmResourceId | ResourceId for the VM to be monitored  | [reference('deployJumpBox').outputs.vmID.value]    |
+|  osType | Linux or Windows  | Windows    |
+|  workspaceResourceId | Resource ID of the log analytics workspace to use  | [reference('deployLAWorkspace').outputs.workspaceId.value]   |
+
+### Output  
+NA 
+
+### Sample Deployment  
+
+    {
+      "name": "addJumpBoxInsights",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployJumpBox"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addVMInsightsURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "VmResourceId": {
+            "value": "[reference('deployJumpBox').outputs.vmID.value]"
+          },
+          "osType": {
+            "value": "Windows"
+          },
+          "WorkspaceResourceId": {
+            "value": "[reference('deployLAWorkspace').outputs.workspaceId.value]"
+          }
+        }
+      }
+    }
+
+## <a name="GetNicIP"></a>Get Network Interface IP Template  
+This template will return the first IP address assigned to a Azure Network Interface. This can be used to get an IP so you can add it to a Private DNS Zone    
+
+### Typical Neted Template used before
+PrivateEndpoint  
+WindowsVirtualMachine  
+LinuxVirtualMachine      
+
+### Typical Nested Template used after  
+PrivateDNSARecord             
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  nicID | ResourceId for the network interface  | [reference('deploySqlServerPE').outputs.nicID.value]    |
+
+### Output  
+"nicIP": IP Address of the NIC
+
+### Sample Deployment  
+
+    {
+      "name": "getSqlServerNICIP",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
           }
         }
       }

@@ -14,7 +14,7 @@
                 "description": "OS Type, Example: Linux / Windows"
             }
         },
-        "WorkspaceResourceId": {
+        "workspaceResourceId": {
             "type": "String",
             "metadata": {
                 "description": "Workspace Resource ID."

@@ -252,7 +252,10 @@
     "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
     "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]",
     "deployACRURL": "[concat(variables('gitUri'),'/ACR.json?token=AHZUR2BSH55ROHWSDR6A3RC67FE42')]",
-    "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json?token=AHZUR2GRGZKBM7HM25N4TNS67FHLC')]"
+    "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json?token=AHZUR2GRGZKBM7HM25N4TNS67FHLC')]",
+    "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCache.json?token=AHZUR2DMYC2EM4GPUHQIH5C67J7YG')]",
+    "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
+    "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]"
   },
   "resources": [
     {
@@ -739,6 +742,91 @@
           },
           "publicIpId": {
               "value": "[reference('deployPublicIPBastion').outputs.publicIPID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAzureCacheVault",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureCacheBusURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "cacheName": {
+            "value": "[parameters('cacheName')]"
+          },
+          "subnetId": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/privateep-SN')]"
+          },
+          "saConnectionString": {
+            "value": "[reference('deployPrivateStorage').outputs.saConnectionString.value]"
+          },
+          "ipAddress": {
+            "value": "192.168.1.180"
+          },
+          "bakcupEnabled": {
+            "value": true
+          },
+          "backupFrequency": {
+            "value": 90
+          },
+          "maxSnaphots": {
+            "value": 10
+          }
+        }
+      }
+    },
+    {
+      "name": "addJumpBoxInsights",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployJumpBox"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addVMInsightsURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "VmResourceId": {
+            "value": "[reference('deployJumpBox').outputs.vmID.value]"
+          },
+          "osType": {
+            "value": "Windows"
+          },
+          "WorkspaceResourceId": {
+            "value": "[reference('deployLAWorkspace').outputs.workspaceId.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "getSqlServerNICIP",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
           }
         }
       }
