@@ -130,6 +130,14 @@
       "type": "string",
       "defaultValue": "wbpocdemobastion"
     },
+    "ubuntuName": {
+      "type": "string",
+      "defaultValue": "wbpocubuntu"
+    },
+    "ubuntuSize": {
+      "type": "string",
+      "defaultValue": "Standard_DS1_v2"
+    },
     "jumpName": {
       "type": "string",
       "defaultValue": "wbpocdemojump"
@@ -253,9 +261,10 @@
     "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]",
     "deployACRURL": "[concat(variables('gitUri'),'/ACR.json?token=AHZUR2BSH55ROHWSDR6A3RC67FE42')]",
     "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json?token=AHZUR2GRGZKBM7HM25N4TNS67FHLC')]",
-    "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCache.json?token=AHZUR2DMYC2EM4GPUHQIH5C67J7YG')]",
+    "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCacheVNet.json?token=AHZUR2BCQ5Y7CE76W7C7HZS67KBMG')]",
     "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
-    "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]"
+    "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]",
+    "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]"
   },
   "resources": [
     {
@@ -830,8 +839,47 @@
           }
         }
       }
+    },
+    {
+      "name": "deployUbuntuBox",
+      "comments":"NOTE: OS and Datadisks cannot be tagged when provisioned within VM.  Would need to provision DISK with tags first, then reference",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployUbuntuServerTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "subnetID": {
+            "value": "[reference('deployVNET').outputs.sharedSubnetID.value]"
+          },
+          "virtualMachineName": {
+            "value": "[parameters('ubuntuName')]"
+          },
+          "virtualMachineSize": {
+            "value": "[parameters('ubuntuSize')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "ubuntuOSVersion": {
+            "value": "18.04-LTS"
+          },
+          "zone": {
+            "value": "1"
+          }
+        }
+      }
     }
   ],
   "outputs": {
-  }
+  }  
 }

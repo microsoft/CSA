@@ -14,12 +14,14 @@ The Nested Templates are built to be generic in nature with the ability to pass 
 [Log Analytics Workspace](#LogAnalyticsWorkspace)  
 [Key Vault](#KeyVault)  
 [Key Vault Secret](#KeyVaultSecret)  
+[Add Access Policy to Key Vault](#KeyVaultAccessPolicyTemplate)  
 [Azure Container Registry](#AzureContainerRegistry)  
 [Azure API Management](#APIM)  
 [Azure Bastion Host](#AzureBastion)  
 [Azure Redis Cache VNet Injection](#AzureRedisCacheVnet)  
 [Enable VM Insights](#EnabledVMInsights)  
 [Get Nic IP](#GetNicIP)  
+[Linux Virtual Machine](#LinuxVirtualMachine)
 
 ## <a name="VnetTemplate"></a>VNet Template  
 This template will deploy a Virtual Network in Azure. It accepts a dynamic list of Subnets with their IP Ranges.  
@@ -1111,6 +1113,55 @@ This template requires you to pass in the following parameters:
 
 ### Output  
 "nicIP": IP Address of the NIC
+
+### Sample Deployment  
+
+    {
+      "name": "getSqlServerNICIP",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
+          }
+        }
+      }
+    }
+
+## <a name="UbuntuVirtualMachine"></a>Ubuntu Virtual Machine    
+This template will create a Ubuntu Virtual Machine.      
+
+### Typical Neted Template used before
+VNet          
+
+### Typical Nested Template used after  
+EnableVMInsights              
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  subnetName | Subnet name where the nic will be placed  | shared-SN    |
+|  virtualNetworkId | VNet ID where the nic will be placed  | [reference('deployVNet').outputs.vnetID.value]    |  
+|  virtualMachineName | Name of the Virtual Machine  | pocVM    |  
+|  ubuntuOSVersion | Allowd values: 18.04-LTS, 16.04-LTS, 14.04.4-LTS  | 18.04-LTS    |  
+|  adminUsername | Administrator username  | LinuxAdmin    |  
+|  adminPassword | Administrator password  | ABCabc1234    |  
+|  zone | Availability zone to place the VM  | 1    |
+
+### Output  
+"vmID": Resource id of the virtual machine created  
+"nicID": Resource id of the nic created
 
 ### Sample Deployment  
 

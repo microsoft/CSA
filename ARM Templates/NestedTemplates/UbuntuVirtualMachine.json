@@ -14,6 +14,15 @@
     "virtualMachineSize": {
       "type": "string"
     },
+    "ubuntuOSVersion": {
+      "type": "string",
+      "defaultValue": "18.04-LTS",
+      "allowedValues": [
+        "18.04-LTS",
+        "16.04-LTS",
+        "14.04.4-LTS"
+      ]
+    },
     "adminUsername": {
       "type": "string"
     },
@@ -22,20 +31,13 @@
     },
     "zone": {
       "type": "string"
-    },
-    "sku": {
-      "type": "string",
-      "allowedValues": [
-        "18.04-LTS"
-      ]
     }
   },
   "variables": {
     "vnetId": "[parameters('virtualNetworkId')]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]",
-    "publisher": "Windows",
-    "offer": "WindowsServer",
-    "dataDiskName": "[concat(parameters('virtualMachineName'),'-DataDisk0')]",
+    "publisher": "Canonical",
+    "offer": "UbuntuServer",
     "nicName": "[concat(parameters('virtualMachineName'),'-NIC')]"
   },
   "resources": [
@@ -74,9 +76,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "Canonical",
-            "offer": "UbuntuServer",
-            "sku": "[parameters('sku')]",
+            "publisher": "[variables('publisher')]",
+            "offer": "[variables('offer')]",
+            "sku": "[parameters('ubuntuOSVersion')]",
             "version": "latest"
           },
           "osDisk": {
@@ -123,6 +125,13 @@
     }
   ],
   "outputs": {
-
+    "vmID": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Compute/virtualMachines',parameters('virtualMachineName'))]"
+    },
+    "nicID": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+    }
   }
 }
