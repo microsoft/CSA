@@ -2,9 +2,9 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.1",
   "parameters": {
-    "location": {
+    "deploymentPrefix": {
       "type": "string",
-      "defaultValue": "eastus"
+      "defaultValue": "poc"
     },
     "resourceGroup": {
       "type": "string",
@@ -245,6 +245,14 @@
     "dockerBridgeCidr": {
         "type": "string",
         "defaultValue": "172.17.0.1/24"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "defaultValue": "pocSqlServer"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "defaultValue": "pocDatabase"
     }
   },
   "variables": {
@@ -265,7 +273,12 @@
     "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
     "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]",
     "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]",
-    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/AKSMICluster.json?token=AHZUR2H7PRSD4N34SA7CEBC7AJ2BI')]"
+    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/AKSMICluster.json?token=AHZUR2H7PRSD4N34SA7CEBC7AJ2BI')]",
+    "deployPrivateEndpointURL": "[concat(variables('gitUri'),'/PrivateEndpoint.json?token=AHZUR2ANGPOPTEYF3JTOQUC7AM7BK')]",
+    "deployDNSZoneTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSZone.json?token=AHZUR2BDKB2JC4L7EECEHZC7ANBV6')]",
+    "deployDNSARecordTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSARecord.json?token=AHZUR2BETDHPZOXBONCORBK7ANBYE')]",
+    "deployStorageAccountTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSARecord.json?token=AHZUR2BETDHPZOXBONCORBK7ANBYE')]",
+    "saName": "[concat(toLower(parameters('deploymentPrefix')),'_sa',toLower(uniqueString(resourcegroup().id)))]"
   },
   "resources": [
     {
@@ -942,6 +955,211 @@
           },
           "dockerBridgeCidr": {
               "value": "[parameters('dockerBridgeCidr')]"
+          }
+        }
+      }
+    },
+        {
+      "name": "deploySqlDb",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureSqlDbURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "collation": {
+            "value": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databaseName": {
+              "value": "[parameters('sqlDatabaseName')]"
+          },
+          "tier": {
+              "value": "GeneralPurpose"
+          },
+          "skuName": {
+              "value": "GP_S_Gen5_24"
+          },
+          "maxSizeBytes": {
+              "value": 1099511627776
+          },
+          "sampleName": {
+              "value": ""
+          },
+          "serverName": {
+              "value": "[parameters('sqlServerName')]"
+          },
+          "zoneRedundant": {
+              "value": false
+          },
+          "licenseType": {
+              "value": ""
+          },
+          "readScaleOut": {
+              "value": "Disabled"
+          },
+          "numberOfReplicas": {
+              "value": 0
+          },
+          "minCapacity": {
+              "value": "3"
+          },
+          "autoPauseDelay": {
+              "value": "180"
+          },
+          "enableADS": {
+              "value": false
+          },
+          "enableVA": {
+              "value": false
+          },
+          "useVAManagedIdentity": {
+              "value": true
+          },
+          "administratorLogin": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "administratorLoginPassword": {
+              "value": "[parameters('adminPassword')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySqlServerPE",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlDb",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPrivateEndpointURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "peName": {
+            "value": "[concat(parameters('sqlServerName'),'_pe')]"
+          },
+          "resourceID": {
+            "value": "[reference('deploySqlDb').outputs.sqlServerId.value]"
+          },
+          "vnetID": {
+            "value": "[reference('deployVNET').outputs.vnetId.value]"
+          },
+          "subnetName": {
+            "value": "PrivateEP-SN"
+          },
+          "groupID": {
+            "value": "SqlServer"
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySqlDbDNSZone",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSZoneTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zone_name": {
+            "value": "privatelink.database.windows.net"
+          },
+          "vnet_id": {
+            "value": "[reference('deployVNET').outputs.vnetID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "getSqlServerNICIP",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "createSqlDbARecord",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSARecordTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zoneName": {
+            "value": "privatelink.database.windows.net"
+          },
+          "recordName": {
+            "value": "[parameters('sqlServerName')]"
+          },
+          "recordValue": {
+            "value": "[reference('getSqlServerNICIP').outputs.nicIP.value]"
+          }
+        }
+      }
+    },
+        {
+      "name": "deployStorageAccount",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        ""
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployStorageAccountTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "saName": {
+            "value": "[variables('saName')]"
+          },
+          "skuName": {
+            "value": "Standard_LRS"
+          },
+          "skuTier": {
+            "value": "Standard"
           }
         }
       }

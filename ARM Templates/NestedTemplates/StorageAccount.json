@@ -1,0 +1,79 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "saName": {
+            "type": "String"
+        },
+        "skuName": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_LRS", 
+                "Standard_GRS", 
+                "Standard_RAGRS", 
+                "Standard_ZRS", 
+                "Premium_LRS", 
+                "Premium_ZRS", 
+                "Standard_GZRS", 
+                "Standard_RAGZRS"
+            ]
+        },
+        "skuTier": {
+            "type": "string",
+            "allowedValues": [
+                "Standard",
+                "Premium"
+            ]
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('saName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                
+            },
+            "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Deny"
+                },
+                "supportsHttpsTrafficOnly": true,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                },
+                "accessTier": "Hot"
+            }
+        }
+    ],
+    "outputs": {
+        "saId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Storage/storageAccounts', parameters('saName'))]"
+        },
+        "saConnectionString": {
+            "type": "string",
+            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('saName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('saName')), '2019-06-01').keys[0].value)]"
+        }
+    }
+}

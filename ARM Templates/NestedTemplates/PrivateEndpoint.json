@@ -11,6 +11,9 @@
         "vnetID": {
             "type": "String"
         },
+        "subnetName": {
+            "type": "string"
+        },
         "groupID": {
             "type": "string"
         }
@@ -41,7 +44,7 @@
                 ],
                 "manualPrivateLinkServiceConnections": [],
                 "subnet": {
-                    "id": "[concat(parameters('vnetID'), '/subnets/PrivateEP-SN')]"
+                    "id": "[concat(parameters('vnetID'), '/subnets/', parameters('subnetName'))]"
                 }
             }
         }

@@ -16,7 +16,10 @@ The Nested Templates are built to be generic in nature with the ability to pass 
      - [Add Access Policy to Key Vault](#KeyVaultAccessPolicyTemplate) 
      - [Azure Bastion Host](#AzureBastion)
      - [Azure Bastion Host](#AzureBastion) 
-     - [Get Nic IP](#GetNicIP)  
+     - [Get Nic IP](#GetNicIP) 
+     - [Private Endpoint](#PrivateEndpoint) 
+     - [Private DNS Zone](#PrivateDNSZone)
+     - [Private DNS A Record](#PrivateDNSARecord)
 * [IaaS Templates](#IaaSTemplates)
      - [Ubuntu Virtual Machine](#UbuntuVirtualMachine)
      - [Enable VM Insights](#EnabledVMInsights) 
@@ -620,6 +623,217 @@ This template requires you to pass in the following parameters:
         "parameters": {
           "nicID": {
             "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
+          }
+        }
+      }
+    }
+
+## <a name="PrivateEndpoint"></a>Private Endpoint 
+This template will create a Private Endpoint for any PaaS Service that has this functionality    
+
+### Typical Neted Template used before
+Any PaaS Service that can utilize a Private Endpoint        
+
+### Typical Nested Template used after  
+PrivateDNSZone               
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  peName | Private Endpoint resource name  | poc-sql-ep    | 
+|  resourceID | ResourceId for the network interface  | [reference('deploySqlDb').outputs.sqlServerId.value]    |
+|  vnetID | ResourceId for the Virtual Network the Private Endpoint wil sit on  | [reference('deployVNET').outputs.vnetId.value]    |
+|  subnetName | Name of the subnet to palce the private endpoint on  | PrivateEP-SN    |
+|  groupID | The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to. - string  | SqlServer    |
+
+### Output  
+"nicID": Resource ID of the virtual nic created by the Private Endpoint
+
+### Sample Deployment  
+
+    {
+      "name": "deploySqlServerPE",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlDb",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPrivateEndpointURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "peName": {
+            "value": "[concat(parameters('sqlServerName'),'_pe')]"
+          },
+          "resourceID": {
+            "value": "[reference('deploySqlDb').outputs.sqlServerId.value]"
+          },
+          "vnetID": {
+            "value": "[reference('deployVNET').outputs.vnetId.value]"
+          },
+          "subnetName": {
+            "value": "PrivateEP-SN"
+          },
+          "groupID": {
+            "value": "SqlServer"
+          }
+        }
+      }
+    } 
+
+## <a name="PrivateDNSZone"></a>Private DNS Zone 
+This template will create a Private DNS Zone and attach it to a VNet. This is often used to resolve Private Endpoints within Azure.    
+
+### Typical Neted Template used before
+PrivateEndpoint        
+
+### Typical Nested Template used after  
+PrivateDNSARecord               
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  zoneName | The DNS zone name  | privatelink.database.windows.net    | 
+|  vnetID | ResourceId for the Virtual Network Private DNS Zone will attach to  | [reference('deployVNET').outputs.vnetId.value]    |
+
+### Output  
+na
+
+### Sample Deployment  
+
+    {
+      "name": "deploySqlDbDNSZone",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSZoneTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zone_name": {
+            "value": "privatelink.database.windows.net"
+          },
+          "vnet_id": {
+            "value": "[reference('deployVNET').outputs.vnetID.value]"
+          }
+        }
+      }
+    }
+
+## <a name="PrivateDNSARecord"></a>Private DNS A Record 
+This template will create a Private DNS A Record in a Private DNS Zone.    
+
+### Typical Neted Template used before
+PrivateDNSZone
+GetNicIP        
+
+### Typical Nested Template used after  
+NA               
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  zoneName | The DNS zone name  | privatelink.database.windows.net    | 
+|  recordName | Name of the record to be created  | [parameters('sqlServerName')]    |
+|  recordValue | IP Address to be associated with the A record  | [reference('getSqlServerNICIP').outputs.nicIP.value]    |
+
+### Output  
+na
+
+### Sample Deployment  
+
+    {
+      "name": "createSqlDbARecord",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSARecordTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zoneName": {
+            "value": "privatelink.database.windows.net"
+          },
+          "recordName": {
+            "value": "[parameters('sqlServerName')]"
+          },
+          "recordValue": {
+            "value": "[reference('getSqlServerNICIP').outputs.nicIP.value]"
+          }
+        }
+      }
+    }
+
+## <a name="StorageAccount"></a>Storage Account 
+This template will create a storage account.    
+
+### Typical Neted Template used before
+NA        
+
+### Typical Nested Template used after  
+NA               
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  saName | The name of the storage account  | pocsa    | 
+|  skuName | Name of the record to be created. Allowed values: Standard_LRS,Standard_GRS,Standard_RAGRS,Standard_ZRS,Premium_LRS,Premium_ZRS,Standard_GZRS,Standard_RAGZRS  | Standard_LRS    |
+|  skuTier | Standard or Premium  | Standard    |
+
+### Output  
+saId: Resource ID of the storage account
+saConnectionString: Connection string for the storage account
+
+### Sample Deployment  
+
+    {
+      "name": "createSqlDbARecord",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSARecordTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zoneName": {
+            "value": "privatelink.database.windows.net"
+          },
+          "recordName": {
+            "value": "[parameters('sqlServerName')]"
+          },
+          "recordValue": {
+            "value": "[reference('getSqlServerNICIP').outputs.nicIP.value]"
           }
         }
       }

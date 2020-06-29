@@ -2,11 +2,14 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "zone_name": {
+        "zoneName": {
             "type": "String"
         },
-        "apimname": {
+        "recordName": {
             "type": "String"
+        },
+        "recordValue": {
+            "type": "string"
         }
     },
     "variables": {},
@@ -14,14 +17,14 @@
         {
             "type": "Microsoft.Network/privateDnsZones/A",
             "apiVersion": "2018-09-01",
-            "name": "[concat(parameters('zone_name'), '/', parameters('apimname'))]",
+            "name": "[concat(parameters('zoneName'), '/', parameters('recordName'))]",
             "dependsOn": [
             ],
             "properties": {
                 "ttl": 3600,
                 "aRecords": [
                     {
-                        "ipv4Address": "[reference(resourceId('Microsoft.ApiManagement/service',parameters('zone_name'))).Properties.privateIPAddresses[0]]"
+                        "ipv4Address": "[parameters('recordValue')]"
                     }
                 ]
             }
