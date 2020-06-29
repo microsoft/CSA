@@ -264,7 +264,8 @@
     "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCacheVNet.json?token=AHZUR2BCQ5Y7CE76W7C7HZS67KBMG')]",
     "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
     "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]",
-    "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]"
+    "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]",
+    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]"
   },
   "resources": [
     {
@@ -875,6 +876,72 @@
           },
           "zone": {
             "value": "1"
+          }
+        }
+      }
+    },
+        {
+      "name": "deployPrivateAKSCluster",
+      "comments":"apiVersion is flagged, but haven't changed as not sure if this is needed for some features.",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureAKSTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "aksResourceName": {
+            "value": "[parameters('aksResourceName')]"
+          },
+          "nodeResourceGroup":{
+            "value": "[parameters('nodeResourceGroup')]"
+          },
+          "vnetName" : {
+            "value": "[parameters('vnetName')]"
+          },
+          "subnetName" : {
+            "value": "AKS-SN"
+          },  
+          "dnsPrefix": {
+              "value": "[parameters('dnsPrefix')]"
+          },
+          "kubernetesVersion": {
+              "value": "[parameters('kubernetesVersion')]"
+          },
+          "networkPlugin": {
+              "value": "[parameters('networkPlugin')]"
+          },
+          "enableRBAC": {
+              "value": "[parameters('enableRBAC')]"
+          },
+          "vmssNodePool": {
+              "value": "[parameters('vmssNodePool')]"
+          },
+          "enablePrivateCluster": {
+              "value": "[parameters('enablePrivateCluster')]"
+          },
+          "enableHttpApplicationRouting": {
+              "value": "[parameters('enableHttpApplicationRouting')]"
+          },
+          "networkPolicy": {
+              "value": "[parameters('networkPolicy')]"
+          },
+          "vnetSubnetID": {
+              "value": "[reference('deployVNET').outputs.aksSubnetID.value]"
+          },
+          "serviceCidr": {
+              "value": "[parameters('serviceCidr')]"
+          },
+          "dnsServiceIP": {
+              "value": "[parameters('dnsServiceIP')]"
+          },
+          "dockerBridgeCidr": {
+              "value": "[parameters('dockerBridgeCidr')]"
           }
         }
       }
