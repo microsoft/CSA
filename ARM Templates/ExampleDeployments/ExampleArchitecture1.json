@@ -265,7 +265,7 @@
     "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
     "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]",
     "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]",
-    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]"
+    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/AKSMICluster.json?token=AHZUR2H7PRSD4N34SA7CEBC7AJ2BI')]"
   },
   "resources": [
     {
@@ -880,7 +880,7 @@
         }
       }
     },
-        {
+    {
       "name": "deployPrivateAKSCluster",
       "comments":"apiVersion is flagged, but haven't changed as not sure if this is needed for some features.",
       "type": "Microsoft.Resources/deployments",

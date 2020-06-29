@@ -1095,23 +1095,20 @@ This template requires you to pass in the following parameters:
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
-          "AksresourceName": {
-            "value": "[variables('AksresourceName')]"
-          },
-          "location": {
-              "value": "[resourceGroup().location]"
+          "aksResourceName": {
+            "value": "[parameters('aksResourceName')]"
           },
           "nodeResourceGroup":{
-            "value": "[variables('nodeResourceGroup')]"
+            "value": "[parameters('nodeResourceGroup')]"
           },
-          "VNetName" : {
-            "value": "[variables('vNETName')]"
+          "vnetName" : {
+            "value": "[parameters('vnetName')]"
           },
-          "SubnetName" : {
+          "subnetName" : {
             "value": "AKS-SN"
           },  
           "dnsPrefix": {
-              "value": "[variables('dnsPrefix')]"
+              "value": "[parameters('dnsPrefix')]"
           },
           "kubernetesVersion": {
               "value": "[parameters('kubernetesVersion')]"
@@ -1124,9 +1121,6 @@ This template requires you to pass in the following parameters:
           },
           "vmssNodePool": {
               "value": "[parameters('vmssNodePool')]"
-          },
-          "windowsProfile": {
-              "value": "[parameters('windowsProfile')]"
           },
           "enablePrivateCluster": {
               "value": "[parameters('enablePrivateCluster')]"
@@ -1141,21 +1135,18 @@ This template requires you to pass in the following parameters:
               "value": "[reference('deployVNET').outputs.aksSubnetID.value]"
           },
           "serviceCidr": {
-              "value": "[variables('serviceCidr')]"
+              "value": "[parameters('serviceCidr')]"
           },
           "dnsServiceIP": {
-              "value": "[variables('dnsServiceIP')]"
+              "value": "[parameters('dnsServiceIP')]"
           },
           "dockerBridgeCidr": {
-              "value": "[variables('dockerBridgeCidr')]"
-          },
-          "resourceTag":{
-            "value":"[variables('resourceTag')]"
+              "value": "[parameters('dockerBridgeCidr')]"
           }
         }
       }
     }  
-    
+
 # <a name"ContainerTemplates"></a>Container Templates  
 
 ## <a name="AzureContainerRegistry"></a>Azure Container Registry Template  
