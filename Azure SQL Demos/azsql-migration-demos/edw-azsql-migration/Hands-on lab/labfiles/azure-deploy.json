@@ -1,0 +1,387 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "region": {
+            "type": "string",
+            "defaultValue": "South Central US",
+            "allowedValues": [
+                "East US",
+                "East US 2",
+                "West US",
+                "West US 2",
+                "Central US",
+                "South Central US",
+                "North Central US",
+                "West Central US",
+                "Brazil South",
+                "Canada Central",
+                "North Europe",
+                "West Europe",
+                "France Central",
+                "UK South",
+                "East Asia",
+                "Southeast Asia",
+                "Japan East",
+                "Korea Central",
+                "Central India",
+                "Australia East",
+                "Australia Southeast"
+            ],
+            "metadata": {
+              "name": "Use one of the following regions that support the Azure Data Factory SSIS Integration Runtime."
+            }
+        },
+        "administratorLogin": {
+            "type": "string",
+            "defaultValue": "demouser"
+        },
+        "administratorLoginPassword": {
+            "type": "securestring",
+            "defaultValue": "Demo@pass123"
+        },
+        "collation": {
+            "type": "string",
+            "defaultValue": "SQL_Latin1_General_CP1_CI_AS"
+        },
+        "databaseName": {
+            "type": "string",
+            "defaultValue": "cohoOLTP"
+        },
+        "tier": {
+            "type": "string",
+            "defaultValue": "Standard"
+        },
+        "skuName": {
+            "type": "string",
+            "defaultValue": "S1"
+        },
+        "maxSizeBytes": {
+            "type": "int",
+            "defaultValue": 268435456000
+        },
+        "sampleName": {
+            "type": "string",
+            "defaultValue": "AdventureWorksLT"
+        },
+        "zoneRedundant": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "licenseType": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "readScaleOut": {
+            "type": "string",
+            "defaultValue": "Disabled"
+        },
+        "numberOfReplicas": {
+            "type": "int",
+            "defaultValue": 0
+        },
+        "enableATP": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "allowAzureIps": {
+            "type": "bool",
+            "defaultValue": true
+        },        
+        "vmName": {
+            "type": "string",
+            "defaultValue": "SQLCohoDW"
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3"
+        },
+        "adminUsername": {
+            "type": "string",
+            "defaultValue": "demouser"
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "defaultValue": "Demo@pass123"
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "default"
+        }
+    },
+    "variables": {
+        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
+        "customScriptURI":"https://raw.githubusercontent.com/Microsoft/MCW-Migrate-EDW-to-Azure-SQL-Data-Warehouse/master/Hands-on%20lab/labfiles/configure-onprem-sql.ps1",
+        "customScriptUriScriptFileName":"configure-onprem-sql.ps1",
+        "customScriptFolder": "./",
+        "serverName": "[concat('cohooltpserver-', uniqueString(resourceGroup().id))]",
+        "location": "[parameters('region')]",
+        "imagePublisher": "MicrosoftSQLServer",
+        "imageOffer": "SQL2016SP2-WS2016",
+        "imageSku": "SQLDEV",
+        "OSDiskName": "sqlvm1osdisk",
+        "nicName": "sqlvm1nic",
+        "addressPrefix": "10.0.0.0/16",
+        "subnetName": "Subnet",
+        "subnetPrefix": "10.0.0.0/24",
+        "vhdStorageType": "Standard_LRS",
+        "publicIPAddressName": "sqlvm1ip",
+        "publicIPAddressType": "Dynamic",
+        "vhdStorageContainerName": "vhds",
+        "virtualNetworkName": "CohoOnPrem-vnet",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
+        "vhdStorageAccountName": "[concat('vhdstorage', uniqueString(resourceGroup().id))]",
+        "coho360_name": "[concat('coho360', uniqueString(resourceGroup().id))]",
+        "coho360container_name": "coho360staging"
+        
+    },
+    "resources": [
+          {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[variables('vhdStorageAccountName')]",
+            "apiVersion": "2016-01-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+              "displayName": "StorageAccount"
+            },
+            "sku": {
+              "name": "[variables('vhdStorageType')]"
+            },
+            "kind": "Storage"
+          },
+          {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPAddressName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+              "displayName": "PublicIPAddress"
+            },
+            "properties": {
+              "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
+            }
+          },
+          {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[variables('virtualNetworkName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+              "displayName": "VirtualNetwork"
+            },
+            "properties": {
+              "addressSpace": {
+                "addressPrefixes": [
+                  "[variables('addressPrefix')]"
+                ]
+              },
+              "subnets": [
+                {
+                  "name": "[variables('subnetName')]",
+                  "properties": {
+                    "addressPrefix": "[variables('subnetPrefix')]"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "2016-03-30",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[variables('nicName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+              "displayName": "NetworkInterface"
+            },
+            "dependsOn": [
+              "[resourceId('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+              "[resourceId('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+            ],
+            "properties": {
+              "ipConfigurations": [
+                {
+                  "name": "ipconfig1",
+                  "properties": {
+                    "privateIPAllocationMethod": "Dynamic",
+                    "publicIPAddress": {
+                      "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPAddressName'))]"
+                    },
+                    "subnet": {
+                      "id": "[variables('subnetRef')]"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[parameters('vmName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+              "displayName": "VirtualMachine"
+            },
+            "dependsOn": [
+              "[resourceId('Microsoft.Storage/storageAccounts/', variables('vhdStorageAccountName'))]",
+              "[resourceId('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+            ],
+            "properties": {
+              "hardwareProfile": {
+                "vmSize": "[parameters('vmSize')]"
+              },
+              "osProfile": {
+                "computerName": "[parameters('vmName')]",
+                "adminUsername": "[parameters('adminUsername')]",
+                "adminPassword": "[parameters('adminPassword')]"
+              },
+              "storageProfile": {
+                "imageReference": {
+                  "publisher": "[variables('imagePublisher')]",
+                  "offer": "[variables('imageOffer')]",
+                  "sku": "[variables('imageSku')]",
+                  "version": "latest"
+                },
+                "osDisk": {
+                  "name": "osdisk",
+                  "vhd": {
+                    "uri": "[concat(reference(resourceId('Microsoft.Storage/storageAccounts', variables('vhdStorageAccountName')), '2016-01-01').primaryEndpoints.blob, variables('vhdStorageContainerName'), '/', variables('OSDiskName'), '.vhd')]"
+                  },
+                  "caching": "ReadWrite",
+                  "createOption": "FromImage"
+                }
+              },
+              "networkProfile": {
+                "networkInterfaces": [
+                  {
+                    "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nicName'))]"
+                  }
+                ]
+              },
+              "diagnosticsProfile": {
+                "bootDiagnostics": {
+                  "enabled": false
+                }
+              }
+            },
+            "resources": [
+              {
+                "name": "CustomSciptExtension1",
+                "type": "extensions",
+                "location": "[resourceGroup().location]",
+                "apiVersion": "2016-03-30",
+                "dependsOn": [
+                  "[resourceId('Microsoft.Compute/virtualMachines', parameters('vmName'))]"
+                ],
+                "tags": {
+                  "displayName": "ConfigureVM"
+                },
+                "properties": {
+                  "publisher": "Microsoft.Compute",
+                  "type": "CustomScriptExtension",
+                  "typeHandlerVersion": "1.8",
+                  "autoUpgradeMinorVersion": false,
+                  "settings": {
+                    "fileUris": [
+                      "[variables('customScriptUri')]"
+                    ],
+                    "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ', variables('customScriptFolder'), '/', variables('customScriptUriScriptFileName'))]"
+                  }
+                }
+              }
+            ]
+          },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "location": "[variables('location')]",
+            "name": "[variables('serverName')]",
+            "properties": {
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "version": "12.0"
+            },
+            "resources": [
+                {
+                    "apiVersion": "2017-10-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
+                    ],
+                    "location": "[variables('location')]",
+                    "name": "[parameters('databaseName')]",
+                    "properties": {
+                        "collation": "[parameters('collation')]",
+                        "maxSizeBytes": "[parameters('maxSizeBytes')]",
+                        "sampleName": "[parameters('sampleName')]",
+                        "zoneRedundant": "[parameters('zoneRedundant')]",
+                        "licenseType": "[parameters('licenseType')]",
+                        "readScale": "[parameters('readScaleOut')]",
+                        "readReplicaCount": "[parameters('numberOfReplicas')]"
+                    },
+                    "sku": {
+                        "name": "[parameters('skuName')]",
+                        "tier": "[parameters('tier')]"
+                    },
+                    "type": "databases"
+                },
+                {
+                    "condition": "[parameters('allowAzureIps')]",
+                    "apiVersion": "2014-04-01-preview",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', variables('serverName'))]"
+                    ],
+                    "location": "[variables('location')]",
+                    "name": "AllowAllWindowsAzureIps",
+                    "properties": {
+                        "endIpAddress": "0.0.0.0",
+                        "startIpAddress": "0.0.0.0"
+                    },
+                    "type": "firewallrules"
+                },
+                {
+                    "condition": "[parameters('enableATP')]",
+                    "apiVersion": "2017-03-01-preview",
+                    "type": "securityAlertPolicies",
+                    "name": "Default",
+                    "dependsOn": [
+                        "[concat('Microsoft.Sql/servers/', variables('serverName'))]",
+                        "[concat('Microsoft.Sql/servers/', variables('serverName'), '/databases/', parameters('databaseName'))]"
+                    ],
+                    "properties": {
+                        "state": "Enabled",
+                        "disabledAlerts": [],
+                        "emailAddresses": [],
+                        "emailAccountAdmins": true
+                    }
+                }
+            ],
+            "type": "Microsoft.Sql/servers"
+        },
+        {
+          "type": "Microsoft.Storage/storageAccounts",
+          "name": "[variables('coho360_name')]",
+          "apiVersion": "2018-07-01",
+          "location": "[resourceGroup().location]",
+          "tags": {
+            "displayName": "StorageAccount"
+          },
+          "sku": {
+            "name": "[variables('vhdStorageType')]",
+            "tier": "Standard"
+          },
+          "kind": "StorageV2",
+          "properties": {
+            "accessTier": "Hot"
+          },
+          "resources": [
+            {
+                "name": "[concat('default/', variables('coho360container_name'))]",
+                "type": "blobServices/containers",
+                "apiVersion": "2018-07-01",
+                "dependsOn": [
+                    "[variables('coho360_name')]"
+                ]
+            }
+          ]
+        }
+    ]
+}

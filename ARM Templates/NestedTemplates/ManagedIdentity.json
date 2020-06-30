@@ -1,0 +1,28 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "identityName": {
+            "defaultValue": "[concat('id-', uniqueString(resourceGroup().id))]",
+            "type": "String",
+            "metadata": {
+                "description": "Name of the user assigned identity"
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2018-11-30",
+            "name": "[parameters('identityName')]",
+            "location": "[resourceGroup().location]"
+        }
+    ],
+    "outputs": {
+      "ObjectId": {
+        "type": "string",
+        "value": "[reference(concat('Microsoft.ManagedIdentity/userAssignedIdentities/', parameters('identityName')), '2018-11-30', 'Full').identity.principalId]"
+      }
+    }
+}

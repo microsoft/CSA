@@ -1,0 +1,26 @@
+﻿** Highlights
+     Tables that will be rebuilt
+       None
+     Clustered indexes that will be dropped
+       None
+     Clustered indexes that will be created
+       None
+     Possible data issues
+       None
+
+** User actions
+     Drop
+       [SQLMICLRDemo] (Assembly)
+     Create
+       [SQLMICLRDemo] (Assembly)
+
+** Supporting actions
+     Drop
+       [dbo].[HelloWorld] (Procedure)
+       [dbo].[PrintText] (Procedure)
+     Create
+       [dbo].[HelloWorld] (Procedure)
+       [dbo].[PrintText] (Procedure)
+
+The option DisableBroker for service broker is not supported
+

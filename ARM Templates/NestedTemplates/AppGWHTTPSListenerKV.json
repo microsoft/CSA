@@ -1,0 +1,221 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+        "applicationGatewayName": {
+            "type": "string"
+        },
+        "tier": {
+            "type": "string"
+        },
+        "skuSize": {
+            "type": "string"
+        },
+        "minCapacity": {
+            "type": "int",
+        },
+        "maxCapacity": {
+            "type": "int",
+        },
+        "zones": {
+            "type": "array"
+        },
+        "subnetID": {
+            "type": "string"
+        },
+        "keyVaultName": {
+            "type": "string"
+        },
+        "identityID": {
+            "type": "string"
+        },
+        "certificates": {
+            "type": "Array"
+        },
+        "publicIpAddressesIds": {
+            "type": "array"
+        },
+        "frontendPorts": {
+            "type": "array"
+        },
+        "backendAddresses": {
+            "type": "array"
+        },
+        "backendHttpSettings": {
+            "type": "array"
+        },
+        "httpListeners": {
+            "type": "array"
+        },
+        "requestRoutingRules": {
+            "type": "array"
+        }
+    },
+    "variables": {
+        "gitUri": "https://raw.githubusercontent.com/microsoft/SoutheastCSA/master/ARM%20Templates/NestedTemplates",
+        "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
+        "copy": [
+            {
+                "name": "certData",
+                "count": "[length(parameters('certificates'))]",
+                "input": {
+                    "name": "[split(parameters('certificates')[copyIndex('certData')],'|')[0]]",
+                    "properties": {
+                        "keyVaultSecretId": "[concat('https://',parameters('keyVaultName'),'.vault.azure.net/secrets/', split(parameters('certificates')[copyIndex('certData')],'|')[1])]"
+                    }
+                }
+            },
+            {
+                "name": "frontendIPConfigurations",
+                "count": "[length(parameters('publicIpAddressesIds'))]",
+                "input": {
+                    "name": "[split(parameters('publicIpAddressesIds')[copyIndex('frontendIPConfigurations')],'|')[0]]",
+                    "properties": {
+                        "privateIPAllocationMethod": "Dynamic",
+                        "publicIPAddress": {
+                            "id": "[split(parameters('publicIpAddressesIds')[copyIndex('frontendIPConfigurations')],'|')[1]]"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "frontendPorts",
+                "count": "[length(parameters('frontendPorts'))]",
+                "input": {
+                    "name": "[split(parameters('frontendPorts')[copyIndex('frontendPorts')],'|')[0]]",
+                    "properties": {
+                        "port": "[split(parameters('frontendPorts')[copyIndex('frontendPorts')],'|')[1]]"
+                    }
+                }
+            },
+            {
+                "name": "backendAddressPools",
+                "count": "[length(parameters('backendAddresses'))]",
+                "input": {
+                    "name": "[split(parameters('backendAddresses')[copyIndex('backendAddressPools')],'|')[0]]",
+                    "properties": {
+                        "backendAddresses": [
+                            {
+                                "fqdn": "[split(parameters('backendAddresses')[copyIndex('backendAddressPools')],'|')[1]]"
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                "name": "backendHttpSettingsCollection",
+                "count": "[length(parameters('backendHttpSettings'))]",
+                "input": {
+                    "name": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[0]]",
+                    "properties": {
+                        "port": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[1]]",
+                        "protocol": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[2]]",
+                        "cookieBasedAffinity": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[3]]",
+                        "requestTimeout": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[4]]",
+                        "pickHostNameFromBackendAddress": true,
+                        "path": "[split(parameters('backendHttpSettings')[copyIndex('backendHttpSettingsCollection')],'|')[5]]"
+                    }
+                }
+            },
+            {
+                "name": "httpListeners",
+                "count": "[length(parameters('httpListeners'))]",
+                "input": {
+                    "name": "[split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[0]]",
+                    "properties": {
+                        "frontendIPConfiguration": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendIPConfigurations/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[1])]"
+                        },
+                        "frontendPort": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/frontendPorts/', split(parameters('httpListeners')[copyIndex('httpListeners')],'|')[2])]"
+                        },
+                        "protocol": "Https",
+                        "sslCertificate": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName') ,'/sslCertificates/', split(parameters('certificates')[copyIndex('httpListeners')],'|')[0])]"
+                        },
+                        "hostNames": [],
+                        "requireServerNameIndication": false
+                    }
+                }
+            },
+            {
+                "name": "requestRoutingRules",
+                "count": "[length(parameters('requestRoutingRules'))]",
+                "input": {
+                    "name": "[split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[0]]",
+                    "properties": {
+                        "ruleType": "Basic",
+                        "httpListener": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/httpListeners/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[1])]"
+                        },
+                        "backendAddressPool": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendAddressPools/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[2])]"
+                        },
+                        "backendHttpSettings": {
+                            "id": "[concat(resourceGroup().id,'/providers/Microsoft.Network/applicationGateways/', parameters('applicationGatewayName'), '/backendHttpSettingsCollection/',split(parameters('requestRoutingRules')[copyIndex('requestRoutingRules')],'|')[3])]"
+                        }
+                    }
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "name": "[parameters('applicationGatewayName')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "apiVersion": "2019-09-01",
+            "dependsOn": [
+            ],
+            "location": "[resourceGroup().location]",
+            "zones": "[parameters('zones')]",
+            "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                    "[parameters('identityID')]": {}
+                }
+            },
+            "tags": {},
+            "properties": {
+                "sku": {
+                    "name": "[parameters('skuSize')]",
+                    "tier": "[parameters('tier')]"
+                },
+                "gatewayIPConfigurations":  [
+                    {
+                        "name": "appGatewayIpConfig",
+                        "properties": {
+                            "subnet": {
+                                "id": "[parameters('subnetID')]"
+                            }
+                        }
+                    }
+                ],
+                "sslCertificates": "[variables('certData')]",
+                "frontendIPConfigurations": "[variables('frontendIPConfigurations')]",
+                "frontendPorts": "[variables('frontendPorts')]",
+                "backendAddressPools": "[variables('backendAddressPools')]",
+                "backendHttpSettingsCollection": "[variables('backendHttpSettingsCollection')]",
+                "httpListeners": "[variables('httpListeners')]",
+                "requestRoutingRules": "[variables('requestRoutingRules')]",
+                "probes": [],
+                "rewriteRuleSets": [],
+                "redirectConfigurations": [],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "Detection",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0",
+                    "disabledRuleGroups": [],
+                    "requestBodyCheck": true,
+                    "maxRequestBodySizeInKb": 128,
+                    "fileUploadLimitInMb": 100
+                },
+                "enableHttp2": false,
+                "autoscaleConfiguration": {
+                    "minCapacity": "[parameters('minCapacity')]",
+                    "maxCapacity": "[parameters('maxCapacity')]"
+                }
+            }
+        }        
+    ]
+}

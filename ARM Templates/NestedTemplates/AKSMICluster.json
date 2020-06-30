@@ -1,0 +1,202 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "aksResourceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Managed Cluster resource."
+            }
+        },
+        "nodeResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of AKS node resource group."
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of Vnet."
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of subnetName."
+            }
+        },        
+        "dnsPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_DS2_v2"
+        },
+        "osDiskSizeGB": {
+            "type": "int",
+            "defaultValue": 0,
+            "metadata": {
+                "description": "Disk size (in GiB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+            },
+            "minValue": 0,
+            "maxValue": 1023
+        },
+        "kubernetesVersion": {
+            "type": "string",
+            "defaultValue": "1.7.7",
+            "metadata": {
+                "description": "The version of Kubernetes."
+            }
+        },
+        "networkPlugin": {
+            "type": "string",
+            "allowedValues": [
+                "azure",
+                "kubenet"
+            ],
+            "metadata": {
+                "description": "Network plugin used for building Kubernetes network."
+            }
+        },
+        "numNodes": {
+            "type": "int",
+            "defaultValue": 3
+        },
+        "enableRBAC": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Boolean flag to turn on and off of RBAC."
+            }
+        },
+        "enablePrivateCluster": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Enable private network access to the Kubernetes cluster."
+            }
+        },
+        "enableHttpApplicationRouting": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Boolean flag to turn on and off http application routing."
+            }
+        },
+        "networkPolicy": {
+            "type": "string",
+            "metadata": {
+                "description": "Network policy used for building Kubernetes network."
+            }
+        },
+        "vnetSubnetID": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource ID of virtual network subnet used for nodes and/or pods IP assignment."
+            }
+        },
+        "serviceCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "A CIDR notation IP range from which to assign service cluster IPs."
+            }
+        },
+        "dnsServiceIP": {
+            "type": "string",
+            "metadata": {
+                "description": "Containers DNS server IP address."
+            }
+        },
+        "dockerBridgeCidr": {
+            "type": "string",
+            "metadata": {
+                "description": "A CIDR notation IP for Docker bridge."
+            }
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-03-01",
+            "dependsOn": [],
+            "type": "Microsoft.ContainerService/managedClusters",
+            "location": "[resourceGroup().location]",
+            "name": "[parameters('aksResourceName')]",
+            "properties": {
+                "kubernetesVersion": "[parameters('kubernetesVersion')]",
+                "nodeResourceGroup": "[parameters('nodeResourceGroup')]",
+                "enableRBAC": "[parameters('enableRBAC')]",
+                "dnsPrefix": "[parameters('dnsPrefix')]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpool",
+                        "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                        "count": "[parameters('numNodes')]",
+                        "vmSize": "[parameters('vmSize')]",
+                        "osType": "Linux",
+                        "storageProfile": "ManagedDisks",
+                        "type": "VirtualMachineScaleSets",
+                        "mode": "System",
+                        "vnetSubnetID": "[parameters('vnetSubnetID')]"
+                    }
+                ],
+                "networkProfile": {
+                    "loadBalancerSku": "standard",
+                    "networkPlugin": "[parameters('networkPlugin')]",
+                    "networkPolicy": "[parameters('networkPolicy')]",
+                    "serviceCidr": "[parameters('serviceCidr')]",
+                    "dnsServiceIP": "[parameters('dnsServiceIP')]",
+                    "dockerBridgeCidr": "[parameters('dockerBridgeCidr')]"
+                },
+                "apiServerAccessProfile": {
+                    "enablePrivateCluster": "[parameters('enablePrivateCluster')]"
+                },
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": "[parameters('enableHttpApplicationRouting')]"
+                    }
+                }
+            },
+            "tags": {},
+            "identity": {
+                "type": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "ClusterSubnetRoleAssignmentDeployment",
+            "apiVersion": "2017-05-10",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/virtualNetworks/subnets/providers/roleAssignments",
+                            "apiVersion": "2017-05-01",
+                            "name": "[concat(parameters('vnetName'), '/', parameters('subnetName'), '/Microsoft.Authorization/', guid(resourceGroup().id, deployment().name))]",
+                            "properties": {
+                                "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '4d97b98b-1d4f-4787-a291-c67834d212e7')]",
+                                "principalId": "[reference(parameters('aksResourceName')).identityProfile.kubeletidentity.objectId]",
+                                "scope": "[parameters('vnetSubnetId')]"
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": []
+        }
+    ],
+    "outputs": {
+        "controlPlaneFQDN": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('aksResourceName'))).privateFQDN]"
+        }
+    }
+}

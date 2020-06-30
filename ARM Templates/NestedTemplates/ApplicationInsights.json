@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2015-05-01",
+            "name": "[parameters('name')]",
+            "location": "eastus",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web",
+                "Flow_Type": "Redfield",
+                "Request_Source": "IbizaAIExtension"
+            }
+        }
+    ],
+    "outputs": {
+        "appInsightsID": {
+            "type": "string",
+            "value": "[resourceId('microsoft.insights/components', parameters('name'))]"
+        }
+    }
+}

@@ -1,0 +1,58 @@
+{
+    "parameters": {
+        "cacheName": {
+            "type": "String"
+        },
+        "capacity": {
+            "type": "int"
+        },
+        "subnetId": {
+            "type": "string"
+        },
+        "saConnectionString": {
+            "type": "string"
+        },
+        "ipAddress": {
+            "type": "string"
+        },
+        "backupEnabled": {
+            "type": "bool"
+        },
+        "backupFrequency": {
+            "type": "int"
+        },
+        "maxSnapshots": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2019-07-01",
+            "type": "Microsoft.Cache/Redis",
+            "name": "[parameters('cacheName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": {
+                     "name": "Premium",
+                    "family": "P",
+                    "capacity": "[parameters('capacity')]"
+                },
+                "redisConfiguration": {
+                    "rdb-storage-connection-string": "[parameters('saConnectionString')]",
+                    "rdb-backup-enabled": "[parameters('backupEnabled')]",
+                    "rdb-backup-frequency": "[parameters('backupFrequency')]",
+                    "rdb-backup-max-snapshot-count": "[parameters('maxSnapshots')]"
+                },
+                "enableNonSslPort": false,
+                "shardCount": 1,
+                "subnetId": "[parameters('subnetId')]",
+                "staticIP": "[parameters('ipAddress')]"
+            },
+            "zones": [
+                "3"
+            ]
+        }
+    ],
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0"
+}

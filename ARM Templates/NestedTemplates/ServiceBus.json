@@ -1,0 +1,78 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sbName": {
+            "type": "String"
+        },
+        "workspaceId": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ServiceBus/namespaces",
+            "apiVersion": "2018-01-01-preview",
+            "name": "[parameters('sbName')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Premium",
+                "tier": "Premium",
+                "capacity": 1
+            },
+            "properties": {
+                "zoneRedundant": true
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [
+                        "[parameters('sbName')]"
+                    ],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": [
+                            {
+                                "category": "OperationalLogs",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true,
+                                "retentionPolicy": {
+                                    "days": 0,
+                                    "enabled": false
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "Microsoft.ServiceBus/namespaces/networkRuleSets",
+                    "apiVersion": "2018-01-01-preview",
+                    "name": "[concat(parameters('sbName'), '/default')]",
+                    "location": "East US",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('sbName'))]"
+                    ],
+                    "properties": {
+                        "defaultAction": "Deny",
+                        "virtualNetworkRules": [],
+                        "ipRules": []
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "sbId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('sbName'))]"
+        }
+    }
+}

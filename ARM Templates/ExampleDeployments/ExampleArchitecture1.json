@@ -1,0 +1,1222 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.1",
+  "parameters": {
+    "deploymentPrefix": {
+      "type": "string",
+      "defaultValue": "poc"
+    },
+    "resourceGroup": {
+      "type": "string",
+      "defaultValue": "testarm"
+    },
+    "vNETName": {
+      "type": "String",
+      "defaultValue": "wbwpocTestVnet",
+      "metadata": {
+        "description": "Name of the virtual network to be created"
+      }
+    },
+    "addressRange": {
+      "type": "String",
+      "defaultValue":"192.168.1.0/24",
+      "metadata": {
+        "description": "Administrator password for the local admin account"
+      }
+    },
+    "subnets": {
+      "type": "array",
+      "defaultValue": [
+        "apim-SN|192.168.1.224/28",
+        "aks-SN|192.168.1.0/25",
+        "privateep-SN|192.168.1.176/28",
+        "shared-SN|192.168.1.160/28",
+        "AzureBastionSubnet|192.168.1.128/28",
+        "AppGW-SN|192.168.1.144/28"
+      ]
+    },
+    "test": {
+      "type": "string",
+      "defaultValue": "allow-HealthProbe|Allow-AppGWHealth|Tcp|*|65200-65535|*|Allow|120|Inbound"
+    },
+    "appInsightsName": {
+      "defaultValue": "wbpocapimai",
+      "type": "string"
+    },
+    "apimname": {
+      "type": "String",
+      "defaultValue": "wbpocAPPapim"
+    },
+    "apimsku": {
+      "type": "string",
+      "defaultValue": "Developer"
+    },
+    "apimcapacity": {
+      "type": "int",
+      "defaultValue": 1
+    },
+    "apimEmail": {
+      "type": "string",
+      "defaultValue": "bwatts@microsoft.com"
+    },
+    "apimPublisherName": {
+      "type": "string",
+      "defaultValue": "POC APIM Deployment"
+    },
+    "APIMVirtualNetworkType": {
+      "type": "string",
+      "defaultValue": "Internal"
+    },
+    "apimDisableGateway": {
+      "type": "bool",
+      "defaultValue": false
+    },
+    "applicationGatewayName": {
+      "type": "string",
+      "defaultValue": "wbwpocTestappgw"
+    },
+    "appgwtier": {
+      "type": "string",
+      "defaultValue": "WAF_v2"
+    },
+    "appgwskuSize": {
+        "type": "string",
+        "defaultValue": "WAF_v2"
+    },
+    "appgwzones": {
+        "type": "array",
+        "defaultValue": [
+                "1",
+                "2",
+                "3"
+        ]
+    },
+    "appgwMinCapacity": {
+        "type": "int",
+        "defaultValue": 1
+    },
+    "appgwMaxCapacity": {
+        "type": "int",
+        "defaultValue": 3
+    },
+    "keyVaultName": {
+      "type": "string",
+      "defaultValue": "labVaultwb"
+    },
+    "keyVaultResourceGroup": {
+      "type": "string",
+      "defaultValue": "lab"
+    },
+    "certificates": {
+      "type": "array",
+      "defaultValue": [
+        "ARMCert|ARM/df47f485ecb1455d98eae9a950af6f47",
+        "ARM2Cert|ARM2/b5e5e9c31a034bffa8387ef38754333f"
+      ]
+    },
+    "keyVaultSecretName": {
+      "type": "string",
+      "defaultValue": "pocsecret"
+    },
+    "keyVaultContentType": {
+      "type": "string",
+      "defaultValue": "text/plain"
+    },
+    "keyVaultSecretValue": {
+      "type": "string",
+      "defaultValue": "secretvalue"
+    },
+    "bastionHostName": {
+      "type": "string",
+      "defaultValue": "wbpocdemobastion"
+    },
+    "ubuntuName": {
+      "type": "string",
+      "defaultValue": "wbpocubuntu"
+    },
+    "ubuntuSize": {
+      "type": "string",
+      "defaultValue": "Standard_DS1_v2"
+    },
+    "jumpName": {
+      "type": "string",
+      "defaultValue": "wbpocdemojump"
+    },
+    "jumpSize": {
+      "type": "string",
+      "defaultValue": "Standard_DS1_v2"
+    },
+    "adminUsername": {
+      "type": "string",
+      "defaultValue": "jumpAdmin"
+    },
+    "adminPassword": {
+      "type": "secureString",
+      "defaultValue": "ABCabc1234"
+    },
+    "jumpSKU": {
+      "type": "string",
+      "defaultValue": "2019-Datacenter"
+    },
+    "gw_zone_name": {
+      "type": "string",
+      "defaultValue": "azure-api.net"
+    },
+    "dev_zone_name": {
+      "type": "string",
+      "defaultValue": "developer.azure-api.net"
+    },
+    "workspaceName": {
+      "type": "string",
+      "defaultValue": "wbpocmonitoringla"
+    },
+    "saname": {
+      "type": "string",
+      "defaultValue": "wbpocinspiresa"
+    },
+    "vaultName": {
+      "type": "string",
+      "defaultValue": "wbpocinspirekv"
+    },
+    "acrName": {
+      "type": "string",
+      "defaultValue": "wbpocinspireacr"
+    },
+    "sbName": {
+      "type": "string",
+      "defaultValue": "wbpocinspiresb"
+    },
+    "cacheName": {
+      "type": "string",
+      "defaultValue": "wbpocinspirecache"
+    },
+    "AksresourceName": {
+      "type": "string",
+      "defaultValue": "wbaksprivate"
+    },
+    "nodeResourceGroup": {
+      "type": "string",
+      "defaultValue": "wbaksresources"
+    },
+    "dnsPrefix": {
+        "type": "string",
+        "defaultValue": "wbaksprivate-dns"
+    },
+    "kubernetesVersion": {
+        "type": "string",
+        "defaultValue": "1.15.11"
+    },
+    "networkPlugin": {
+        "type": "string",
+        "defaultValue": "kubenet"
+    },
+    "enableRBAC": {
+        "type": "bool",
+        "defaultValue": true
+    },
+    "vmssNodePool": {
+        "type": "bool",
+        "defaultValue": true
+    },
+    "windowsProfile": {
+        "type": "bool",
+        "defaultValue": false
+    },
+    "enablePrivateCluster": {
+        "type": "bool",
+        "defaultValue": true
+    },
+    "enableHttpApplicationRouting": {
+        "type": "bool",
+        "defaultValue": true
+    },
+    "networkPolicy": {
+        "type": "string",
+        "defaultValue": "calico"
+    },
+    "serviceCidr": {
+        "type": "string",
+        "defaultValue": "10.0.0.0/24"
+    },
+    "dnsServiceIP": {
+        "type": "string",
+        "defaultValue": "10.0.0.10"
+    },
+    "dockerBridgeCidr": {
+        "type": "string",
+        "defaultValue": "172.17.0.1/24"
+    },
+    "sqlServerName": {
+      "type": "string",
+      "defaultValue": "pocSqlServer"
+    },
+    "sqlDatabaseName": {
+      "type": "string",
+      "defaultValue": "pocDatabase"
+    }
+  },
+  "variables": {
+    "gitUri": "https://raw.githubusercontent.com/microsoft/SoutheastCSA/master/ARM%20Templates/NestedTemplates",
+    "gitToken": "?token=AHZUR2HL7OC45D4BODNJ5T266UOBW",
+    "deployVNETTemplateURL": "[concat(variables('gitUri'),'/VNet.json',variables('gitToken'))]",
+    "deployNSGTemplateURL": "[concat(variables('gitUri'),'/NSG-ExistingSubnet.json?token=AHZUR2CV43ZHADAYUUF5AJS66UXEE')]",
+    "deployNSGEmptyTemplateURL": "[concat(variables('gitUri'),'/NSG-Empty-ExistingSubnet.json?token=AHZUR2CB4MT42GXCECX2SES66XYH2')]",
+    "deployPublicIPTemplateURL": "[concat(variables('gitUri'),'/PublicIPAddress.json?token=AHZUR2HQ5SPZTRNUKERQM3K667CZ2')]",
+    "deployAppGWHTTPListenerTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPListener.json?token=AHZUR2ABDKBA525664J35L2667C4W')]",
+    "deployAppGWHTTPSListenerKVTemplateURL": "[concat(variables('gitUri'),'/AppGWHTTPSListenerKV.json?token=AHZUR2CRIINBOXCZ5GGRTTC67DQIS')]",
+    "createManagedIdentityTemplateURL": "[concat(variables('gitUri'),'/UserAssignedManagedIdentity.json?token=AHZUR2FWA473GO43A4MYVQS67DRA2')]",
+    "deployKeyVaultAccessTemplate": "[concat(variables('gitUri'),'/KeyVaultAccessPolicy.json?token=AHZUR2G2OTMO5JUEA5ZU7PK67DJEA')]",
+    "addKeyVaultSecretTemplate": "[concat(variables('gitUri'),'/KeyVaultSecret.json?token=AHZUR2F4YL53AEIRULAGGHS67E4PK')]",
+    "deployACRURL": "[concat(variables('gitUri'),'/ACR.json?token=AHZUR2BSH55ROHWSDR6A3RC67FE42')]",
+    "deployAPIMTemplateURL": "[concat(variables('gitUri'),'/APIM.json?token=AHZUR2GRGZKBM7HM25N4TNS67FHLC')]",
+    "deployAzureCacheBusURL": "[concat(variables('gitUri'),'/AzureRedisCacheVNet.json?token=AHZUR2BCQ5Y7CE76W7C7HZS67KBMG')]",
+    "addVMInsightsURL": "[concat(variables('gitUri'),'/EnableVMInsights.json?token=AHZUR2FP76FNZCTRIVH4VVC67J75O')]",
+    "getNICIPUrL": "[concat(variables('gitUri'),'/GetNicIP.json?token=AHZUR2GOQWB4GNXTQ24RUYC67KA4G')]",
+    "deployUbuntuServerTemplateURL": "[concat(variables('gitUri'),'/UbuntuVirtualMachine.json?token=AHZUR2GQNNM7BRGVZVGG3DC7AIEC2')]",
+    "deployAzureAKSTemplateURL": "[concat(variables('gitUri'),'/AKSMICluster.json?token=AHZUR2H7PRSD4N34SA7CEBC7AJ2BI')]",
+    "deployPrivateEndpointURL": "[concat(variables('gitUri'),'/PrivateEndpoint.json?token=AHZUR2ANGPOPTEYF3JTOQUC7AM7BK')]",
+    "deployDNSZoneTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSZone.json?token=AHZUR2BDKB2JC4L7EECEHZC7ANBV6')]",
+    "deployDNSARecordTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSARecord.json?token=AHZUR2BETDHPZOXBONCORBK7ANBYE')]",
+    "deployStorageAccountTemplateURL": "[concat(variables('gitUri'),'/StorageAccount.json?token=AHZUR2BWIZ7NPVSGNT4V3VC7ANVPC')]",
+    "deployAzureSqlDbURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "deployLogAnalyticsTemplateURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "deployAppGWDiagnosticsTemplateURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "saName": "[concat(toLower(parameters('deploymentPrefix')),'_sa',toLower(uniqueString(resourcegroup().id)))]",
+    "laName": "[concat(parameters('deploymentPrefix'),'_la',uniqueString(resourcegroup().id))]"
+  },
+  "resources": [
+    {
+      "name": "deployLogAnalytics",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployLogAnalyticsTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[variables('laName')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployVNET",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployVNETTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "vNETName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "addressRange": {
+            "value": "[parameters('addressRange')]"
+          },
+          "subnets": {
+            "value": "[parameters('subnets')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAppGWNSG",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployNSGTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "subnetName": {
+            "value": "AppGW-SN"
+          },
+          "subnetAddressPrefix": {
+            "value": "[reference(concat(subscription().id,'/resourceGroups/', parameters('resourceGroup') , '/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/AppGW-SN'), '2018-03-01').addressPrefix]"
+          },
+          "nsgName": {
+            "value": "AppGW-NSG"
+          },
+          "securityRules": {
+            "value": [
+              "deny-all|Deny-All-Traffic|Tcp|*|*|*|*|Deny|500|Inbound",
+              "allow-443|Allow-SSL|Tcp|*|443|*|*|Allow|100|Inbound",
+              "allow-8080|Allow-SSL|Tcp|*|8080|*|*|Allow|110|Inbound",
+              "allow-HealthProbe|Allow-AppGWHealth|Tcp|*|65200-65535|*|*|Allow|120|Inbound"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySharedNSG",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployVNET",
+        "deployAppGWNSG"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployNSGTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "subnetName": {
+            "value": "Shared-SN"
+          },
+          "subnetAddressPrefix": {
+            "value": "[reference(concat(subscription().id,'/resourceGroups/', parameters('resourceGroup') , '/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/Shared-SN'), '2018-03-01').addressPrefix]"
+          },
+          "nsgName": {
+            "value": "Shared-NSG"
+          },
+          "securityRules": {
+            "value": [
+              "deny-all|Deny-All-Traffic|Tcp|*|*|*|*|Deny|500|Inbound",
+              "allow-bastion|Allow-Bastion-Host|Tcp|*|*|192.168.1.144/28|*|Allow|100|Inbound"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAPIMNSG",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployVNET",
+        "deploySharedNSG"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployNSGTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "subnetName": {
+            "value": "APIM-SN"
+          },
+          "subnetAddressPrefix": {
+            "value": "[reference(concat(subscription().id,'/resourceGroups/',parameters('resourceGroup') ,'/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/APIM-SN'), '2018-03-01').addressPrefix]"
+          },
+          "nsgName": {
+            "value": "APIM-NSG"
+          },
+          "securityRules": {
+            "value": [
+              "allow-443|Allow-SSL|Tcp|*|443|192.168.1.144/28|*|Allow|100|Inbound",
+              "allow-mgmt-endpoint|Allow-Management|Tcp|*|3443|ApiManagement|VirtualNetwork|Allow|120|Inbound",
+              "allow-azure-storage|Allow-Storage-Account|Tcp|*|443|VirtualNetwork|Storage|Allow|130|Outbound",
+              "allow-azure-ad|Allow-Azure-AD|Tcp|*|443|VirtualNetwork|AzureActiveDirectory|Allow|140|Outbound",
+              "allow-event-hub|Allow-EventHub|Tcp|*|5671-5672|VirtualNetwork|EventHub|Allow|150|Outbound",
+              "allow-event-hub-443|Allow-EventHub|Tcp|*|443|VirtualNetwork|EventHub|Allow|155|Outbound",
+              "allow-file-share|Allow-FileShare|Tcp|*|445|VirtualNetwork|Storage|Allow|160|Outbound",
+              "allow-health-status|Allow-Health-Status|Tcp|*|1886|VirtualNetwork|AzureCloud|Allow|170|Outbound",
+              "allow-azure-monitor|Allow-Azure-Monitor|Tcp|*|443|VirtualNetwork|AzureMonitor|Allow|180|Outbound",
+              "allow-azure-cache-ob|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|190|Outbound",
+              "allow-azure-cache-ib|Allow-Azure-Cahce|Tcp|*|6381-6383|VirtualNetwork|VirtualNetwork|Allow|200|Inbound",
+              "allow-rate-limit-ib|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow|210|Inbound",
+              "allow-rate-limit-ob|Allow-Rate-Limit-Policy|UDP|*|4290|VirtualNetwork|VirtualNetwork|Allow|220|Outbound",
+              "deny-all-inbound|Deny All|Tcp|*|*|*|*|Deny|500|Inbound",
+              "deny-all-outbound|Deny All|Tcp|*|*|*|*|Deny|500|Outbound"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAKSNSG",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployVNET",
+        "deployAPIMNSG"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployNSGEmptyTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "virtualNetworkName": {
+            "value": "[parameters('vNETName')]"
+          },
+          "subnetName": {
+            "value": "AKS-SN"
+          },
+          "subnetAddressPrefix": {
+            "value": "[reference(concat(subscription().id,'/resourceGroups/',parameters('resourceGroup') ,'/providers/Microsoft.Network/virtualNetworks/', parameters('vNETName'), '/subnets/AKS-SN'), '2018-03-01').addressPrefix]"
+          },
+          "nsgName": {
+            "value": "AKS-NSG"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployPublicIP1",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('applicationGatewayName'),'pip1')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Static"
+          }
+        }
+      }
+    },
+    {
+      "name": "createManagedIdentity",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('createManagedIdentityTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "identityName": {
+              "value": "[concat(parameters('applicationGatewayName'),'-identity')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployKeyVaultAccess",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "createManagedIdentity"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployKeyVaultAccessTemplate')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "keyVaultName": {
+              "value": "[parameters('keyVaultName')]"
+          },
+          "secrets": {
+              "value": [
+                  "Get",
+                  "List",
+                  "Set",
+                  "Delete",
+                  "Recover",
+                  "Backup",
+                  "Restore"
+              ]
+          },
+          "objectId": {
+              "value": "[reference('createManagedIdentity').outputs.principalId.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "addKeyVaultSecret",
+      "type": "Microsoft.Resources/deployments",
+      "resourceGroup": "[parameters('keyVaultResourceGroup')]",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addKeyVaultSecretTemplate')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "keyVaultName": {
+              "value": "[parameters('keyVaultName')]"
+          },
+          "secretName": {
+            "value": "[parameters('keyVaultSecretName')]"
+          },
+          "contentType": {
+              "value": "[parameters('keyVaultContentType')]"
+          },
+          "value": {
+              "value": "[parameters('keyVaultSecretValue')]"
+          }
+        }
+      }
+    }, 
+    {
+      "name": "deployAppGW",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployVNET",
+        "deployPublicIP1"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAppGWHTTPSListenerKVTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "applicationGatewayName": {
+              "value": "[parameters('applicationGatewayName')]"
+          },
+          "tier": {
+              "value": "[parameters('appgwtier')]"
+          },
+          "skuSize": {
+              "value": "[parameters('appgwskuSize')]"
+          },
+          "minCapacity": {
+              "value": "[parameters('appgwMinCapacity')]",
+          },
+          "maxCapacity": {
+              "value": "[parameters('appgwMaxCapacity')]",
+          },
+          "zones": {
+              "value": "[parameters('appgwzones')]"
+          },
+          "subnetID": {
+              "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AppGW-SN')]"
+          },
+          "publicIpAddressesIds": {
+              "value": [
+                "[concat('PIP1|',reference('deployPublicIP1').outputs.publicIPID.value )]"
+              ]
+          },
+          "keyVaultName": {
+            "value": "[parameters('keyVaultName')]"
+          },
+          "identityID": {
+              "value": "[reference('createManagedIdentity').outputs.resourceId.value]"
+          },
+          "certificates": {
+              "value": "[parameters('certificates')]"
+          },
+          "frontendPorts": {
+              "value": [
+                "HTTPS-443|443",
+                "HTTPS-8080|8080"
+              ]
+          },
+          "backendAddresses": {
+              "value": [
+                "Example1-BEPool|bing.com",
+                "Example2-BEPool|microsoft.com"
+              ]
+          },
+          "backendHttpSettings": {
+              "value": [
+                "Example-App-HTTPSetting|80|Http|Disabled|30|/"
+              ]
+          },
+          "httpListeners": {
+              "value": [
+                "Example1-App-Listener|PIP1|HTTPS-443",
+                "Example2-App-Listener|PIP1|HTTPS-8080"
+              ]
+          },
+          "requestRoutingRules": {
+              "value": [
+                "Example1-App-RoutingRule|Example1-App-Listener|Example1-BEPool|Example-App-HTTPSetting",
+                "Example2-App-RoutingRule|Example2-App-Listener|Example2-BEPool|Example-App-HTTPSetting"
+              ]
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAppGWDiagnostics",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployAppGW",
+        "deployLogAnalytics"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAppGWDiagnosticsTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "workspaceId": {
+              "value": "[reference('deployLogAnalytics').outputs.vnetId.value]"
+          },
+          "logs": {
+              "value": [
+
+              ]
+          },
+          "metrics": {
+              "value": [
+
+              ]
+          }
+        }
+      }  
+    },
+    {
+      "name": "deployACR",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployACRURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "acrName": {
+            "value": "[parameters('acrName')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAPIM",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET",
+        "deployAppInsights",
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAPIMTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "apimname": {
+            "value": "[parameters('apimName')]"
+          },
+          "sku": {
+            "value": "[parameters('apimsku')]"
+          },
+          "capacity": {
+            "value": "[parameters('apimcapacity')]"
+          },
+          "apimEmail": {
+            "value": "[parameters('apimEmail')]"
+          },
+          "subnetID": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/APIM-SN')]"
+          },
+          "publisherName": {
+            "value": "[parameters('apimPublisherName')]"
+          },
+          "virtualNetworkType": {
+              "value": "[parameters('apimVirtualNetworkType')]"
+          },
+          "disableGateway": {
+              "value": "[parameters('apimDisableGateway')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployPublicIPBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPublicIPTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "publicIpAddressName": {
+            "value": "[concat(parameters('bastionHostName'),'pip1')]"
+          },
+          "sku": {
+              "value": "Standard"
+          },
+          "allocationMethod": {
+              "value": "Static"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAzureBastion",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureBastionTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "bastionHostName": {
+              "value": "[parameters('bastionHostName')]"
+          },
+          "subnetId": {
+              "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]"
+          },
+          "publicIpId": {
+              "value": "[reference('deployPublicIPBastion').outputs.publicIPID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployAzureCacheVault",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureCacheBusURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "cacheName": {
+            "value": "[parameters('cacheName')]"
+          },
+          "subnetId": {
+            "value": "[concat(reference('deployVNET').outputs.vnetId.value,'/subnets/privateep-SN')]"
+          },
+          "saConnectionString": {
+            "value": "[reference('deployPrivateStorage').outputs.saConnectionString.value]"
+          },
+          "ipAddress": {
+            "value": "192.168.1.180"
+          },
+          "bakcupEnabled": {
+            "value": true
+          },
+          "backupFrequency": {
+            "value": 90
+          },
+          "maxSnaphots": {
+            "value": 10
+          }
+        }
+      }
+    },
+    {
+      "name": "addJumpBoxInsights",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployJumpBox"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('addVMInsightsURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "VmResourceId": {
+            "value": "[reference('deployJumpBox').outputs.vmID.value]"
+          },
+          "osType": {
+            "value": "Windows"
+          },
+          "WorkspaceResourceId": {
+            "value": "[reference('deployLAWorkspace').outputs.workspaceId.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "getSqlServerNICIP",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployUbuntuBox",
+      "comments":"NOTE: OS and Datadisks cannot be tagged when provisioned within VM.  Would need to provision DISK with tags first, then reference",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployUbuntuServerTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "subnetID": {
+            "value": "[reference('deployVNET').outputs.sharedSubnetID.value]"
+          },
+          "virtualMachineName": {
+            "value": "[parameters('ubuntuName')]"
+          },
+          "virtualMachineSize": {
+            "value": "[parameters('ubuntuSize')]"
+          },
+          "adminUsername": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "ubuntuOSVersion": {
+            "value": "18.04-LTS"
+          },
+          "zone": {
+            "value": "1"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployPrivateAKSCluster",
+      "comments":"apiVersion is flagged, but haven't changed as not sure if this is needed for some features.",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2019-10-01",
+      "dependsOn": [
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureAKSTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "aksResourceName": {
+            "value": "[parameters('aksResourceName')]"
+          },
+          "nodeResourceGroup":{
+            "value": "[parameters('nodeResourceGroup')]"
+          },
+          "vnetName" : {
+            "value": "[parameters('vnetName')]"
+          },
+          "subnetName" : {
+            "value": "AKS-SN"
+          },  
+          "dnsPrefix": {
+              "value": "[parameters('dnsPrefix')]"
+          },
+          "kubernetesVersion": {
+              "value": "[parameters('kubernetesVersion')]"
+          },
+          "networkPlugin": {
+              "value": "[parameters('networkPlugin')]"
+          },
+          "enableRBAC": {
+              "value": "[parameters('enableRBAC')]"
+          },
+          "vmssNodePool": {
+              "value": "[parameters('vmssNodePool')]"
+          },
+          "enablePrivateCluster": {
+              "value": "[parameters('enablePrivateCluster')]"
+          },
+          "enableHttpApplicationRouting": {
+              "value": "[parameters('enableHttpApplicationRouting')]"
+          },
+          "networkPolicy": {
+              "value": "[parameters('networkPolicy')]"
+          },
+          "vnetSubnetID": {
+              "value": "[reference('deployVNET').outputs.aksSubnetID.value]"
+          },
+          "serviceCidr": {
+              "value": "[parameters('serviceCidr')]"
+          },
+          "dnsServiceIP": {
+              "value": "[parameters('dnsServiceIP')]"
+          },
+          "dockerBridgeCidr": {
+              "value": "[parameters('dockerBridgeCidr')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySqlDb",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureSqlDbURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "collation": {
+            "value": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databaseName": {
+              "value": "[parameters('sqlDatabaseName')]"
+          },
+          "tier": {
+              "value": "GeneralPurpose"
+          },
+          "skuName": {
+              "value": "GP_S_Gen5_24"
+          },
+          "maxSizeBytes": {
+              "value": 1099511627776
+          },
+          "sampleName": {
+              "value": ""
+          },
+          "serverName": {
+              "value": "[parameters('sqlServerName')]"
+          },
+          "zoneRedundant": {
+              "value": false
+          },
+          "licenseType": {
+              "value": ""
+          },
+          "readScaleOut": {
+              "value": "Disabled"
+          },
+          "numberOfReplicas": {
+              "value": 0
+          },
+          "minCapacity": {
+              "value": "3"
+          },
+          "autoPauseDelay": {
+              "value": "180"
+          },
+          "publicNetworkAccess": {
+            "value": "Disabled"
+          },
+          "useVAManagedIdentity": {
+              "value": true
+          },
+          "administratorLogin": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "administratorLoginPassword": {
+              "value": "[parameters('adminPassword')]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySqlServerPE",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlDb",
+        "deployVNET"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployPrivateEndpointURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "peName": {
+            "value": "[concat(parameters('sqlServerName'),'_pe')]"
+          },
+          "resourceID": {
+            "value": "[reference('deploySqlDb').outputs.sqlServerId.value]"
+          },
+          "vnetID": {
+            "value": "[reference('deployVNET').outputs.vnetId.value]"
+          },
+          "subnetName": {
+            "value": "PrivateEP-SN"
+          },
+          "groupID": {
+            "value": "SqlServer"
+          }
+        }
+      }
+    },
+    {
+      "name": "deploySqlDbDNSZone",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSZoneTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zone_name": {
+            "value": "privatelink.database.windows.net"
+          },
+          "vnet_id": {
+            "value": "[reference('deployVNET').outputs.vnetID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "getSqlServerNICIP",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deploySqlServerPE"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('getNICIPUrL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "nicID": {
+            "value": "[reference('deploySqlServerPE').outputs.nicID.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "createSqlDbARecord",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "getSqlServerNICIP"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployDNSARecordTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "zoneName": {
+            "value": "privatelink.database.windows.net"
+          },
+          "recordName": {
+            "value": "[parameters('sqlServerName')]"
+          },
+          "recordValue": {
+            "value": "[reference('getSqlServerNICIP').outputs.nicIP.value]"
+          }
+        }
+      }
+    },
+    {
+      "name": "deployStorageAccount",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployStorageAccountTemplateURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "saName": {
+            "value": "[variables('saName')]"
+          },
+          "skuName": {
+            "value": "Standard_LRS"
+          },
+          "skuTier": {
+            "value": "Standard"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }  
+}

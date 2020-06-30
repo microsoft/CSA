@@ -1,0 +1,138 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "administratorLogin": {
+            "type": "string"
+        },
+        "administratorLoginPassword": {
+            "type": "securestring"
+        },
+        "serverName": {
+            "type": "string"
+        },
+        "publicNetworkAccess": {
+            "type": "string",
+            "allowedValues": [
+                "Enabled",
+                "Disabled"
+            ]
+        },
+        "useVAManagedIdentity": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "To enable vulnerability assessments, the user deploying this template must have an administrator or owner permissions."
+            }
+        },
+        "allowAzureIps": {
+            "type": "bool",
+            "defaultValue": true
+        },
+        "collation": {
+            "type": "string"
+        },
+        "databaseName": {
+            "type": "string"
+        },
+        "tier": {
+            "type": "string"
+        },
+        "skuName": {
+            "type": "string"
+        },
+        "maxSizeBytes": {
+            "type": "int"
+        },
+        "sampleName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "zoneRedundant": {
+            "type": "bool",
+            "defaultValue": false
+        },
+        "licenseType": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "readScaleOut": {
+            "type": "string",
+            "defaultValue": "Disabled"
+        },
+        "numberOfReplicas": {
+            "type": "int",
+            "defaultValue": 0
+        },
+        "minCapacity": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "autoPauseDelay": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2015-05-01-preview",
+            "name": "[parameters('serverName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "publicNetworkAccess": "[parameters('publicNetworkAccess')]"
+            },
+            "identity": "[if(parameters('useVAManagedIdentity'), json('{\"type\":\"SystemAssigned\"}'), json('null'))]",
+            "resources": [
+                {
+                    "condition": "[parameters('allowAzureIPs')]",
+                    "type": "firewallRules",
+                    "apiVersion": "2014-04-01-preview",
+                    "name": "AllowAllWindowsAzureIps",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[parameters('serverName')]"
+                    ],
+                    "properties": {
+                        "endIpAddress": "0.0.0.0",
+                        "startIpAddress": "0.0.0.0"
+                    }
+                },
+                {
+                    "type": "Microsoft.Sql/servers/databases",
+                    "apiVersion": "2017-10-01-preview",
+                    "location": "[resourceGroup().location]",
+                    "name": "[concat(parameters('serverName'), '/', parameters('databaseName'))]",
+                    "dependsOn": [
+                        "[parameters('serverName')]"
+                    ],
+                    "properties": {
+                        "collation": "[parameters('collation')]",
+                        "maxSizeBytes": "[parameters('maxSizeBytes')]",
+                        "sampleName": "[parameters('sampleName')]",
+                        "zoneRedundant": "[parameters('zoneRedundant')]",
+                        "licenseType": "[parameters('licenseType')]",
+                        "readScale": "[parameters('readScaleOut')]",
+                        "readReplicaCount": "[parameters('numberOfReplicas')]",
+                        "minCapacity": "[parameters('minCapacity')]",
+                        "autoPauseDelay": "[parameters('autoPauseDelay')]"
+                    },
+                    "sku": {
+                        "name": "[parameters('skuName')]",
+                        "tier": "[parameters('tier')]"
+                    }
+                }
+            ]
+        }
+    ],
+    "outputs": {
+        "sqlServerId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"
+        }
+    }
+}

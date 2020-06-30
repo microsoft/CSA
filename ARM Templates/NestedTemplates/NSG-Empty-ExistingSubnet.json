@@ -1,0 +1,53 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.1",
+    "parameters": {
+      "virtualNetworkName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the existing VNet"
+        }
+      },
+      "subnetName": {
+        "type": "string",
+        "metadata": {
+          "description": "The name of the existing subnet."
+        }
+      },
+      "subnetAddressPrefix": {
+        "type": "string"
+      },
+      "nsgName": {
+          "type": "string"
+      }
+    },
+    "variables": {
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Network/networkSecurityGroups",
+        "name": "[parameters('nsgName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2019-12-01",
+        "properties": {
+          "securityRules": []
+        }
+      },
+      {
+            "apiVersion": "2019-12-01",
+            "dependsOn": [
+                "[parameters('nsgName')]"
+            ],
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "name": "[concat(parameters('virtualNetworkName'), '/', parameters('subnetName'))]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressPrefix": "[parameters('subnetAddressPrefix')]",
+                "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('nsgName'))]"
+                }
+            }
+    }
+    ],
+    "outputs": {}
+  }

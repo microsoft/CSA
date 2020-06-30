@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "zoneName": {
+            "type": "String"
+        },
+        "vnetID": {
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/privateDnsZones",
+            "apiVersion": "2018-09-01",
+            "name": "[parameters('zoneName')]",
+            "location": "global",
+            "properties": {
+                "maxNumberOfRecordSets": 25000,
+                "maxNumberOfVirtualNetworkLinks": 1000,
+                "maxNumberOfVirtualNetworkLinksWithRegistration": 100,
+                "numberOfRecordSets": 2,
+                "numberOfVirtualNetworkLinks": 1,
+                "numberOfVirtualNetworkLinksWithRegistration": 0,
+                "provisioningState": "Succeeded"
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+            "apiVersion": "2018-09-01",
+            "name": "[concat(parameters('zoneName'),'/apim')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName'))]"
+            ],
+            "properties": {
+                "registrationEnabled": false,
+                "virtualNetwork": {
+                    "id": "[parameters('vnetID')]"
+                }
+            }
+        }
+    ]
+}
