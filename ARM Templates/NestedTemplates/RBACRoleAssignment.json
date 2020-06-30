@@ -1,0 +1,29 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "roleAssignmentName": {
+            "type": "string"
+        },
+        "roleDefinitionId": {
+            "type": "string"
+        },
+        "principalId": {
+            "type": "string"
+        },
+        "resourceType": {
+            "type": "string"
+        }
+    },
+    "resources": [
+        {
+            "name": "[parameters('roleAssignmentName')]",
+            "type": "[concat(parameters('resourceType'),'/providers/roleAssignments')]",
+            "apiVersion": "2018-09-01-preview",
+            "properties": {
+                "roleDefinitionId": "[parameters('roleDefinitionId')]",
+                "principalId": "[parameters('principalId')]"
+            }
+        }
+    ]
+}

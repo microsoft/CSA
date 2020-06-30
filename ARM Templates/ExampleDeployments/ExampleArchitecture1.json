@@ -277,10 +277,35 @@
     "deployPrivateEndpointURL": "[concat(variables('gitUri'),'/PrivateEndpoint.json?token=AHZUR2ANGPOPTEYF3JTOQUC7AM7BK')]",
     "deployDNSZoneTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSZone.json?token=AHZUR2BDKB2JC4L7EECEHZC7ANBV6')]",
     "deployDNSARecordTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSARecord.json?token=AHZUR2BETDHPZOXBONCORBK7ANBYE')]",
-    "deployStorageAccountTemplateURL": "[concat(variables('gitUri'),'/PrivateDNSARecord.json?token=AHZUR2BETDHPZOXBONCORBK7ANBYE')]",
-    "saName": "[concat(toLower(parameters('deploymentPrefix')),'_sa',toLower(uniqueString(resourcegroup().id)))]"
+    "deployStorageAccountTemplateURL": "[concat(variables('gitUri'),'/StorageAccount.json?token=AHZUR2BWIZ7NPVSGNT4V3VC7ANVPC')]",
+    "deployAzureSqlDbURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "deployLogAnalyticsTemplateURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "deployAppGWDiagnosticsTemplateURL": "[concat(variables('gitUri'),'/SQLDB.json?token=AHZUR2BA5L6MVAQC672VVYC7APMUA')]",
+    "saName": "[concat(toLower(parameters('deploymentPrefix')),'_sa',toLower(uniqueString(resourcegroup().id)))]",
+    "laName": "[concat(parameters('deploymentPrefix'),'_la',uniqueString(resourcegroup().id))]"
   },
   "resources": [
+    {
+      "name": "deployLogAnalytics",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployLogAnalyticsTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "workspaceName": {
+            "value": "[variables('laName')]"
+          }
+        }
+      }
+    },
     {
       "name": "deployVNET",
       "type": "Microsoft.Resources/deployments",
@@ -657,6 +682,38 @@
       }
     },
     {
+      "name": "deployAppGWDiagnostics",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "resourceGroup": "[parameters('resourceGroup')]",
+      "dependsOn": [
+        "deployAppGW",
+        "deployLogAnalytics"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAppGWDiagnosticsTemplateURL')]",
+          "contentVersion": "1.0.0.1"
+        },
+        "parameters": {
+          "workspaceId": {
+              "value": "[reference('deployLogAnalytics').outputs.vnetId.value]"
+          },
+          "logs": {
+              "value": [
+
+              ]
+          },
+          "metrics": {
+              "value": [
+
+              ]
+          }
+        }
+      }  
+    },
+    {
       "name": "deployACR",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
@@ -959,7 +1016,7 @@
         }
       }
     },
-        {
+    {
       "name": "deploySqlDb",
       "comments":"",
       "type": "Microsoft.Resources/deployments",
@@ -1013,11 +1070,8 @@
           "autoPauseDelay": {
               "value": "180"
           },
-          "enableADS": {
-              "value": false
-          },
-          "enableVA": {
-              "value": false
+          "publicNetworkAccess": {
+            "value": "Disabled"
           },
           "useVAManagedIdentity": {
               "value": true
@@ -1137,14 +1191,12 @@
         }
       }
     },
-        {
+    {
       "name": "deployStorageAccount",
       "comments":"",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2017-05-10",
-      "dependsOn": [
-        ""
-      ],
+      "dependsOn": [],
       "properties": {
         "mode": "Incremental",
         "templateLink": {

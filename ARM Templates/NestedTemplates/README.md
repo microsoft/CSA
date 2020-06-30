@@ -1255,6 +1255,9 @@ NA
     }
 
 
+
+# <a name"ContainerTemplates"></a>Container Templates  
+
 ## <a name="PrivateAKSCluster"></a>Private AKS Cluster    
 This template will AKS cluster with Linux nodes.          
 
@@ -1360,8 +1363,6 @@ This template requires you to pass in the following parameters:
         }
       }
     }  
-
-# <a name"ContainerTemplates"></a>Container Templates  
 
 ## <a name="AzureContainerRegistry"></a>Azure Container Registry Template  
 This template will deploy an Azure Container Registry   
@@ -1499,7 +1500,7 @@ This template requires you to pass in the following parameters:
 |  cahceName | Name for the Azure Redis Cache  | poc-azurecache    |
 |  capacity | The size of the Redis cache to deploy  | 2    |
 |  subnetId | Resource ID of the subnet it will reside on  | [concat(reference('deployVNET').outputs.vnetId.value,'/subnets/AzureBastionSubnet')]   |
-|  saConnectionString  |  Storage Account Connection String  |  
+|  saConnectionString  |  Storage Account Connection String  |  [reference('deployStorage').outputs.saConnectionString.value]  |
 |  ipAddress | IP Address to be assigned to cache  | 10.10.10.10   |  
 |  backupEnabled | Boolean either enabling or disabling backup  | true   |
 |  backupFrequency | How often to run a backup  | 90   |
@@ -1549,3 +1550,113 @@ NA
         }
       }
     }  
+
+# <a name"DataTemplates"></a>Data Templates 
+  
+## <a name"SQLDBTemplate"></a>Azure SQL Database 
+This template will deploy an Azure SQL Database  
+
+### Typical Nested Templates used before
+NA    
+
+### Typical Nested Templates used after  
+PrivateEndpoint             
+
+### Utilizing Template  
+This template requires you to pass in the following parameters:  
+
+| Parameter       | Description     | Example     |
+| :------------- | :----------: | -----------: |
+|  administratorLogin | Admin Login for the SQL Server | sqladmin    |
+|  administratorLoginPassword | Admin password for the SQL Server  | SecretPassword01    |
+|  serverName | SQL Server Name to host the Azure SQL DB  | pocSQLServer    |
+|  publicNetworkAccess | Boolean value on if public network access is allowed to the SQL Server  | false    |
+|  useVAManagedIdentity | Boolean value on weather to create a System Managed Identity  | true   |
+|  allowAzureIps  |  Boolean value on if Azure IPs are allowed through firewall  | true |  
+|  collation | The collation of the database.  | SQL_Latin1_General_CP1_CI_AS   |
+|  databaseName | Name of the Azure DB to be created  | pocDB   |
+|  tier | The tier or edition of the particular SKU, e.g. Basic, Premium.  | GeneralPurpose   |
+|  skuName | The name of the SKU, typically, a letter + Number code, e.g. P3. | GP_S_Gen5_24   |  
+|  maxSizeBytes | The max size of the database expressed in bytes.  | 1024   |
+|  sampleName | The name of the sample schema to apply when creating this database. - AdventureWorksLT, WideWorldImportersStd, WideWorldImportersFull  | WideWorldImportersFull    |  
+|  zoneRedundant | Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones  | true   |
+|  licenseType | The license type to apply for this database. - LicenseIncluded or BasePrice | LicenseIncluded   |
+|  readScaleOut | f enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. This property is only settable for Premium and Business Critical databases. - Enabled or Disabled  | Disabled   |
+|  numberOfReplicas | The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases.  | 0   |
+|  minCapacity | Minimal capacity that database will always have allocated, if not paused  | 2   |
+|  autoPauseDelay | Time in minutes after which database is automatically paused. A value of -1 means that automatic pause is disabled  | -1   |
+
+### Output  
+sqlServerId: Resource ID of the SQL Server created
+
+### Sample Deployment  
+
+    {
+      "name": "deploySqlDb",
+      "comments":"",
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2017-05-10",
+      "dependsOn": [
+        "deployLAWorkspace"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('deployAzureSqlDbURL')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "collation": {
+            "value": "SQL_Latin1_General_CP1_CI_AS"
+          },
+          "databaseName": {
+              "value": "[parameters('sqlDatabaseName')]"
+          },
+          "tier": {
+              "value": "GeneralPurpose"
+          },
+          "skuName": {
+              "value": "GP_S_Gen5_24"
+          },
+          "maxSizeBytes": {
+              "value": 1099511627776
+          },
+          "sampleName": {
+              "value": ""
+          },
+          "serverName": {
+              "value": "[parameters('sqlServerName')]"
+          },
+          "zoneRedundant": {
+              "value": false
+          },
+          "licenseType": {
+              "value": ""
+          },
+          "readScaleOut": {
+              "value": "Disabled"
+          },
+          "numberOfReplicas": {
+              "value": 0
+          },
+          "minCapacity": {
+              "value": "3"
+          },
+          "autoPauseDelay": {
+              "value": "180"
+          },
+          "publicNetworkAccess": {
+            "value": "Disabled"
+          },
+          "useVAManagedIdentity": {
+              "value": true
+          },
+          "administratorLogin": {
+            "value": "[parameters('adminUsername')]"
+          },
+          "administratorLoginPassword": {
+              "value": "[parameters('adminPassword')]"
+          }
+        }
+      }
+    }

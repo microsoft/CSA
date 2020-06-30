@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "workspaceId": {
+            "type": "String"
+        },
+        "logs": {
+            "type": "array"
+        },
+        "metrics": {
+            "type": "array"
+        }
+    },
+    "variables": {
+        "copy": [
+            {
+                "name": "logs",
+                "count": "[length(parameters('logs'))]",
+                "input": {
+                    "category": "[parameters('logs')[copyIndex('logs')]]",
+                    "enabled": true
+                }
+            },
+            {
+                "name": "metrics",
+                "count": "[length(parameters('metrics'))]",
+                "input": {
+                    "category": "[parameters('metrics')[copyIndex('metrics')]]",
+                    "enabled": true
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+                    "type": "Microsoft.Network/applicationGateways/providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/loganalytics",
+                    "dependsOn": [],
+                    "apiVersion": "2017-05-01-preview",
+                    "properties": {
+                        "name": "loganalytics",
+                        "workspaceId": "[parameters('workspaceId')]",
+                        "logs": "[variables('logs')]",
+                        "metrics": "[variables('metrics')]"
+                    }
+                }        
+    ],
+    "outputs": {
+    }
+}
