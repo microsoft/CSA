@@ -132,7 +132,7 @@ na
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployNSGEmptyTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "virtualNetworkName": {
@@ -195,7 +195,7 @@ na
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployNSGTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "virtualNetworkName": {
@@ -257,7 +257,7 @@ This template requires you to pass in the following parameters:
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployPublicIPTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "publicIpAddressName": {
@@ -308,7 +308,7 @@ This template requires you to pass in the following parameters:
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('createManagedIdentityTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "identityName": {
@@ -485,7 +485,7 @@ NA
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('addKeyVaultSecretTemplate')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "keyVaultName": {
@@ -542,7 +542,7 @@ NA
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployPublicIPTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "publicIpAddressName": {
@@ -1008,7 +1008,7 @@ na
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployAppGWHTTPListenerTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "applicationGatewayName": {
@@ -1123,7 +1123,7 @@ na
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('deployAppGWHTTPSListenerKVTemplateURL')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "applicationGatewayName": {
@@ -1230,7 +1230,7 @@ NA
           "mode": "Incremental",
           "templateLink": {
           "uri": "[variables('deployKeyVaultAccessTemplate')]",
-          "contentVersion": "1.0.0.1"
+          "contentVersion": "1.0.0.0"
           },
           "parameters": {
               "keyVaultName": {
