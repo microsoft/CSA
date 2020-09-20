@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "aks-helloworld-one.fullname" . }}
+  labels:
+    {{- include "aks-helloworld-one.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "aks-helloworld-one.selectorLabels" . | nindent 4 }}
