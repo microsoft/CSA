@@ -11,9 +11,9 @@ This will hold all the base templates that the "Scenerio Deployments" will utili
 
 2. Scenerio Deployments  
 Each of these deployments will deploy a fully functional environment with zero touch.  
--- [AKS Deployments]()  
+-- [AKS Deployments](https://github.com/microsoft/CSAAKSDeployments)  
 -- [App Service Deployments]()  
 
 ### Demo  
 
-1. [Azure SQL Demos]()  
+1. [Azure SQL Demos](https://github.com/microsoft/CSAAzureSQLDemo)  
