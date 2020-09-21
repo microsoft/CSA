@@ -6,7 +6,7 @@ This repository links together repositories developed by CSAs to help drive know
 ### ARM Templates
 There are two parts to the environments deployed through these repositories:
 
-1. [Nested Templates]()  
+1. [Nested Templates](https://github.com/Microsoft/CSANestedTemplates)  
 This will hold all the base templates that the "Scenerio Deployments" will utilize.  
 
 2. Scenerio Deployments  
